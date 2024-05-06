@@ -45,6 +45,10 @@ public class ExceptionsHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorDTO handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        String message = e.getMessage();
+        if (message != null && message.contains("Required request body is missing")) {
+            return new ErrorDTO("The request body is missing.", LocalDateTime.now());
+        }
         return new ErrorDTO("The server did not understand the request. Check the correct format of the JSON passed, their keys and values.", LocalDateTime.now());
     }
 
@@ -59,9 +63,7 @@ public class ExceptionsHandler {
     public ErrorDTO handleNoResourceFoundException(NoResourceFoundException e) {
         return new ErrorDTO("The endpoint " + e.getResourcePath() + " not found", LocalDateTime.now());
     }
-
-
-    //to figure out why this is not working
+    
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorDTO handleIllegalArgumentException(IllegalArgumentException e) {

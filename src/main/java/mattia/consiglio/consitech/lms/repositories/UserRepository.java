@@ -1,6 +1,7 @@
 package mattia.consiglio.consitech.lms.repositories;
 
 import mattia.consiglio.consitech.lms.entities.User;
+import mattia.consiglio.consitech.lms.entities.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -20,4 +21,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     public Optional<User> findByUsernameOrEmail(String username, String email);
 
+    public int countByRole(UserRole role);
 }

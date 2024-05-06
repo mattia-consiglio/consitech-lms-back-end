@@ -28,11 +28,10 @@ public class User implements UserDetails {
     private String username;
     private String email;
     private String password;
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    private Role role;
+    @Enumerated(value = EnumType.STRING)
+    private UserRole role;
 
-    public User(String username, String email, String password, Role role) {
+    public User(String username, String email, String password, UserRole role) {
         this.username = username;
         this.email = email;
         this.password = password;
@@ -41,7 +40,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.getRole()));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
