@@ -42,7 +42,7 @@ public class UsersController {
     }
 
     @PutMapping("/{id}")
-//    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public User updateUser(@PathVariable("id") UUID id, @Validated @RequestBody EditUserDTO user, BindingResult validation) {
         if (validation.hasErrors()) {
             throw new BadRequestException("Invalid data", validation.getAllErrors());
