@@ -4,6 +4,8 @@ import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.services.MediaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +24,8 @@ public class MediaController {
 
 
     @PostMapping("/upload")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ResponseStatus(HttpStatus.CREATED)
     public Media uploadMedia(@RequestParam("thumbnail") MultipartFile thumbnail,
                              @RequestPart("mediaType") String mediaDTO, BindingResult validation) throws IOException {
         if (validation.hasErrors()) {

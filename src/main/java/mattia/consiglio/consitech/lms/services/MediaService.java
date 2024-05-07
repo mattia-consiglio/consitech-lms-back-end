@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,7 +34,9 @@ public class MediaService {
                     .collect(Collectors.joining(", "));
             throw new BadRequestException("Value must be one of the following: " + mediaTypeValues);
         }
-        String url = (String) cloudinary.uploader().upload(thumbnail.getBytes(), ObjectUtils.emptyMap()).get("url");
+        Map response = cloudinary.uploader().upload(thumbnail.getBytes(), ObjectUtils.emptyMap());
+        String url = response.get("url").toString();
+        System.out.println(response);
         Media media = new Media();
         media.setUrl(url);
         media.setType(MediaType.valueOf(mediaType));
@@ -43,5 +46,10 @@ public class MediaService {
 
     public Media getMedia(UUID id) {
         return mediaRepository.findById(id).orElseThrow(() -> new BadRequestException("Media not found"));
+    }
+
+    public void deleteMedia(UUID id) {
+
+        mediaRepository.deleteById(id);
     }
 }

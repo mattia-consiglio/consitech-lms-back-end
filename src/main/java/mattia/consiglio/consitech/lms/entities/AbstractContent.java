@@ -18,9 +18,14 @@ public abstract class AbstractContent {
     @Setter(value = AccessLevel.NONE)
     private UUID id;
     @Column(nullable = false)
+    private String title;
+    @Column(nullable = false)
+    private String slug;
+    private String description;
+    @Column(nullable = false)
     private PublishStatus publishStatus;
     private LocalDateTime createdAt;
-    private int order;
+    private int displayOrder;
     @ManyToOne
     @JoinColumn(name = "thumbnail_id")
     private Media thumbnail;

@@ -14,9 +14,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Table(name = "lessons")
 public class Lesson extends AbstractContent {
-    private String title;
-    private String slug;
-    private String description;
     private String live_editor;
     private String video_url;
     private String video_thumbnail;

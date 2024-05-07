@@ -12,8 +12,5 @@ import lombok.Setter;
 @NoArgsConstructor
 @Table(name = "courses")
 public class Course extends AbstractContent {
-    private String title;
-    private String slug;
-    private String description;
     private int enrolledStudents;
 }

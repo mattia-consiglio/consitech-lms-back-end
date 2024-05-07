@@ -4,6 +4,7 @@ import mattia.consiglio.consitech.lms.entities.Language;
 import mattia.consiglio.consitech.lms.payloads.LanguageDTO;
 import mattia.consiglio.consitech.lms.services.LanguageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ public class LanguageController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
+    @ResponseStatus(HttpStatus.CREATED)
     public Language createLanguage(LanguageDTO language) {
         return languageService.createLanguage(language);
     }
@@ -53,6 +55,7 @@ public class LanguageController {
 
     @DeleteMapping("{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteLanguage(@PathVariable("id") String id) {
         UUID uuid = checkUUID(id, "id");
         languageService.deleteLanguage(uuid);
