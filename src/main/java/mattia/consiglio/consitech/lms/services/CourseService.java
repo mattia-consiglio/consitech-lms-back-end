@@ -6,6 +6,7 @@ import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.entities.Seo;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.payloads.NewCourseDTO;
+import mattia.consiglio.consitech.lms.payloads.UpdateCourseDTO;
 import mattia.consiglio.consitech.lms.repositories.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -55,5 +56,22 @@ public class CourseService {
     public Page<Course> getAllCourses(int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
         return courseRepository.findAll(pageable);
+    }
+
+    public Course updateCourse(UUID id, UpdateCourseDTO courseDTO) {
+        Media thumbnail = null;
+        if (courseDTO.thumbnailId() != null) {
+            thumbnail = mediaService.getMedia(courseDTO.thumbnailId());
+        }
+        Course course = this.getCourse(id);
+        course.setTitle(courseDTO.title());
+        course.setDescription(courseDTO.description());
+        course.setThumbnail(thumbnail);
+        return courseRepository.save(course);
+    }
+
+    public void deleteCourse(UUID id) {
+        Course course = this.getCourse(id);
+        courseRepository.delete(course);
     }
 }

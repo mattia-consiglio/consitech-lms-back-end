@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -18,6 +19,8 @@ public abstract class AbstractContent {
     private UUID id;
     @Column(nullable = false)
     private PublishStatus publishStatus;
+    private LocalDateTime createdAt;
+    private int order;
     @ManyToOne
     @JoinColumn(name = "thumbnail_id")
     private Media thumbnail;
