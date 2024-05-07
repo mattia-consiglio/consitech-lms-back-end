@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL;
+import static mattia.consiglio.consitech.lms.utities.GeneralChecks.checkUUID;
 
 @RestController
 @RequestMapping(BASE_URL + "/languages")
@@ -32,8 +33,9 @@ public class LanguageController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Language getLanguageById(@PathVariable("id") UUID id) {
-        return languageService.getLanguage(id);
+    public Language getLanguageById(@PathVariable("id") String id) {
+        UUID uuid = checkUUID(id, "id");
+        return languageService.getLanguage(uuid);
     }
 
     @GetMapping("code/{code}")
@@ -44,13 +46,15 @@ public class LanguageController {
 
     @PutMapping("{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Language updateLanguage(@PathVariable("id") UUID id, @RequestBody LanguageDTO language) {
-        return languageService.updateLanguage(id, language);
+    public Language updateLanguage(@PathVariable("id") String id, @RequestBody LanguageDTO language) {
+        UUID uuid = checkUUID(id, "id");
+        return languageService.updateLanguage(uuid, language);
     }
 
     @DeleteMapping("{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public void deleteLanguage(@PathVariable("id") UUID id) {
-        languageService.deleteLanguage(id);
+    public void deleteLanguage(@PathVariable("id") String id) {
+        UUID uuid = checkUUID(id, "id");
+        languageService.deleteLanguage(uuid);
     }
 }

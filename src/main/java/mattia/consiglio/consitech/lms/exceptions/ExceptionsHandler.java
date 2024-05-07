@@ -6,6 +6,7 @@ import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -63,7 +64,7 @@ public class ExceptionsHandler {
     public ErrorDTO handleNoResourceFoundException(NoResourceFoundException e) {
         return new ErrorDTO("The endpoint " + e.getResourcePath() + " not found", LocalDateTime.now());
     }
-    
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorDTO handleIllegalArgumentException(IllegalArgumentException e) {
@@ -99,5 +100,12 @@ public class ExceptionsHandler {
     public ErrorDTO handleRuntimeException(RuntimeException e) {
         log.error("An error occurred", e);
         return new ErrorDTO("The server encountered an error. The error is reported to the developer.", LocalDateTime.now());
+    }
+
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+    public ErrorDTO handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e) {
+        return new ErrorDTO("The media type " + e.getContentType() + " is not supported", LocalDateTime.now());
     }
 }

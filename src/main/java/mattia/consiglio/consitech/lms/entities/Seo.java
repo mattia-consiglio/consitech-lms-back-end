@@ -25,4 +25,11 @@ public class Seo {
     @ManyToOne
     @JoinColumn(name = "language_id")
     private Language language;
+
+    public Seo(String title, String description, String ldJson, Language language) {
+        this.title = title;
+        this.description = description;
+        this.ldJson = ldJson;
+        this.language = language;
+    }
 }

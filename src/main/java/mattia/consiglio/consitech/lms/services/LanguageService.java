@@ -28,6 +28,10 @@ public class LanguageService {
         return languageRepository.findByCode(code).orElseThrow(() -> new BadRequestException("Language not found"));
     }
 
+    public boolean existsByCode(String code) {
+        return languageRepository.existsByCode(code);
+    }
+
     public List<Language> getAllLanguages() {
         return languageRepository.findAll();
     }

@@ -2,8 +2,9 @@ package mattia.consiglio.consitech.lms.controllers;
 
 import mattia.consiglio.consitech.lms.entities.User;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
-import mattia.consiglio.consitech.lms.payloads.EditUserDTO;
-import mattia.consiglio.consitech.lms.payloads.NewUserDTO;
+import mattia.consiglio.consitech.lms.payloads.UserPasswordDTO;
+import mattia.consiglio.consitech.lms.payloads.UserRoleDTO;
+import mattia.consiglio.consitech.lms.payloads.UserUpdateDTO;
 import mattia.consiglio.consitech.lms.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL;
+import static mattia.consiglio.consitech.lms.utities.GeneralChecks.checkUUID;
 
 @RestController
 @RequestMapping(BASE_URL + "/users")
@@ -26,8 +28,9 @@ public class UsersController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public User getUserById(@PathVariable("id") UUID id) {
-        return userService.getUserById(id);
+    public User getUserById(@PathVariable("id") String id) {
+        UUID uuid = checkUUID(id, "id");
+        return userService.getUserById(uuid);
     }
 
     @GetMapping("/me")
@@ -41,34 +44,43 @@ public class UsersController {
         return userService.getUsers(page, size, sort);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/role")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public User updateUser(@PathVariable("id") UUID id, @Validated @RequestBody EditUserDTO user, BindingResult validation) {
+    public User updateUser(@PathVariable("id") String id, @Validated @RequestBody UserRoleDTO userRoleDTO, BindingResult validation) {
+        UUID uuid = checkUUID(id, "id");
         if (validation.hasErrors()) {
             throw new BadRequestException("Invalid data", validation.getAllErrors());
         }
-        return userService.updateUser(id, user);
+        return userService.updateUserRole(uuid, userRoleDTO);
+    }
+
+    @PutMapping("/me/password")
+    public User updatePassword(@AuthenticationPrincipal User user, @Validated @RequestBody UserPasswordDTO userPasswordDTO, BindingResult validation) {
+        if (validation.hasErrors()) {
+            throw new BadRequestException("Invalid data", validation.getAllErrors());
+        }
+        return userService.updateUserPassword(user, userPasswordDTO);
     }
 
     @PutMapping("/me")
-    public User updateMe(@AuthenticationPrincipal User user, @Validated @RequestBody NewUserDTO userDto, BindingResult validation) {
+    public User updateMe(@AuthenticationPrincipal User user, @Validated @RequestBody UserUpdateDTO userDto, BindingResult validation) {
         if (validation.hasErrors()) {
             throw new BadRequestException("Invalid data", validation.getAllErrors());
         }
-        return userService.updateUser(user.getId(), userDto);
+        return userService.updateUser(user, userDto);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable("id") UUID id) {
-        userService.deleteUser(id);
+    public void deleteUser(@PathVariable("id") String id) {
+        UUID uuid = checkUUID(id, "id");
+        userService.deleteUser(uuid);
     }
 
     @DeleteMapping("/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMe(@AuthenticationPrincipal User user) {
-        userService.deleteUser(user.getId());
+        userService.deleteUser(user);
     }
-
 }
