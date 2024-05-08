@@ -1,7 +1,7 @@
 package mattia.consiglio.consitech.lms.services;
 
 import mattia.consiglio.consitech.lms.entities.Seo;
-import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
+import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.SeoDTO;
 import mattia.consiglio.consitech.lms.repositories.SeoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ public class SeoService {
     }
 
     public Seo getSeo(UUID id) {
-        return seoRepository.findById(id).orElseThrow(() -> new BadRequestException("Seo not found"));
+        return seoRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Seo", id));
     }
 
     public Seo updateSeo(UUID id, SeoDTO seoDTO) {

@@ -20,6 +20,10 @@ public class ResourceNotFoundException extends RuntimeException {
         super(type + " not found with " + notFoundWith);
     }
 
+    public ResourceNotFoundException(String type, String searchTerm, String notFoundWith) {
+        super(type + " not found with " + searchTerm + " " + notFoundWith);
+    }
+
     public ResourceNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }

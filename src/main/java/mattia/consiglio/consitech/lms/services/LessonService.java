@@ -2,7 +2,7 @@ package mattia.consiglio.consitech.lms.services;
 
 import mattia.consiglio.consitech.lms.entities.Lesson;
 import mattia.consiglio.consitech.lms.entities.PublishStatus;
-import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
+import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewLessonDTO;
 import mattia.consiglio.consitech.lms.payloads.SeoDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateLessonDTO;
@@ -49,7 +49,7 @@ public class LessonService {
     }
 
     public Lesson getLesson(UUID id) {
-        return lessonRepository.findById(id).orElseThrow(() -> new BadRequestException("Lesson not found"));
+        return lessonRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Lesson", id));
     }
 
 

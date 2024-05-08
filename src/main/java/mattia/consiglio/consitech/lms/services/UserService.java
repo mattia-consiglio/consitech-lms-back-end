@@ -3,6 +3,7 @@ package mattia.consiglio.consitech.lms.services;
 import mattia.consiglio.consitech.lms.entities.User;
 import mattia.consiglio.consitech.lms.entities.UserRole;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
+import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.*;
 import mattia.consiglio.consitech.lms.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,15 +47,15 @@ public class UserService {
     }
 
     public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username).orElseThrow(() -> new BadRequestException("User not found"));
+        return userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
     }
 
     public User getUserByUsernameOrEmail(String usernameOrEmail) {
-        return userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail).orElseThrow(() -> new BadRequestException("User not found"));
+        return userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail).orElseThrow(() -> new ResourceNotFoundException("User", "username or email", usernameOrEmail));
     }
 
     public User getUserById(UUID id) {
-        return userRepository.findById(id).orElseThrow(() -> new BadRequestException("User not found"));
+        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
     }
 
     public Page<User> getUsers(int page, int size, String sort) {

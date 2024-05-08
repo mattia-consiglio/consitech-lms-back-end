@@ -1,7 +1,7 @@
 package mattia.consiglio.consitech.lms.services;
 
 import mattia.consiglio.consitech.lms.entities.Language;
-import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
+import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.LanguageDTO;
 import mattia.consiglio.consitech.lms.repositories.LanguageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +21,11 @@ public class LanguageService {
     }
 
     public Language getLanguage(UUID id) {
-        return languageRepository.findById(id).orElseThrow(() -> new BadRequestException("Language not found"));
+        return languageRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Language", id));
     }
 
     public Language getLanguageByCode(String code) {
-        return languageRepository.findByCode(code).orElseThrow(() -> new BadRequestException("Language not found"));
+        return languageRepository.findByCode(code).orElseThrow(() -> new ResourceNotFoundException("Language", "code", code));
     }
 
     public boolean existsByCode(String code) {
