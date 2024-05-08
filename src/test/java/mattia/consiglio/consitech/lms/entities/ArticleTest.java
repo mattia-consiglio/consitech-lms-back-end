@@ -22,10 +22,11 @@ class ArticleTest {
         String title = "Test Article";
         String slug = "test-article";
         String description = "This is a test article";
-        String thumbnail = "thumbnail.jpg";
+
         String content = "This is the content of the test article";
         Seo seo = new Seo();
         Language language = new Language();
+        Media thumbnail = new Media();
 
         article.setTitle(title);
         article.setSlug(slug);

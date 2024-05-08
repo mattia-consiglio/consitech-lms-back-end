@@ -1,4 +1,4 @@
-package mattia.consiglio.consitech.lms.utities;
+package mattia.consiglio.consitech.lms.utils;
 
 import java.util.UUID;
 

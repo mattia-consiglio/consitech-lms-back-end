@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL;
-import static mattia.consiglio.consitech.lms.utities.GeneralChecks.checkUUID;
+import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
 @RestController
 @RequestMapping(BASE_URL + "/languages")

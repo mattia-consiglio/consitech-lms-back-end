@@ -30,7 +30,12 @@ public class SeoService {
         seo.setTitle(seoDTO.title());
         seo.setDescription(seoDTO.description());
         seo.setLdJson(seoDTO.ldJson());
-        seo.setLanguage(languageService.getLanguage(seoDTO.languageId()));
+        seo.setMainLanguage(languageService.getLanguage(seoDTO.languageId()));
         return seoRepository.save(seo);
+    }
+
+    public void deleteSeo(UUID id) {
+        Seo seo = this.getSeo(id);
+        seoRepository.delete(seo);
     }
 }

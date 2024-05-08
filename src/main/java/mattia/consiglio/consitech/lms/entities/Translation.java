@@ -24,5 +24,9 @@ public class Translation {
     private String tableName;
     private String fieldName;
     private String fieldValue;
-    private UUID resource;
+    @Enumerated(EnumType.STRING)
+    private PublishStatus publishStatus;
+    @ManyToOne
+    @JoinColumn(name = "resource_id")
+    private TranslatableContent resource;
 }

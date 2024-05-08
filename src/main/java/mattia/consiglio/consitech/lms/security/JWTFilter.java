@@ -17,6 +17,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 
 @Component
@@ -44,6 +45,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return new AntPathMatcher().match("/api/v1/auth/**", request.getServletPath());
+        String[] excludedPaths = {
+                "/api/v1/auth/**",
+                "/api/v1/public/**",
+        };
+
+        AntPathMatcher pathMatcher = new AntPathMatcher();
+        return Arrays.stream(excludedPaths)
+                .anyMatch(path -> pathMatcher.match(path, request.getServletPath()));
     }
 }

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL;
-import static mattia.consiglio.consitech.lms.utities.GeneralChecks.checkUUID;
+import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
 @RestController
 @RequestMapping(BASE_URL + "/users")

@@ -14,9 +14,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Table(name = "lessons")
 public class Lesson extends AbstractContent {
-    private String live_editor;
-    private String video_url;
-    private String video_thumbnail;
+    private String liveEditor;
+    private String videoUrl;
+    private String videoThumbnail;
     private String content;
     @ManyToOne
     @JoinColumn(name = "course_id")
