@@ -25,4 +25,7 @@ public class Media {
     private String alt;
     private int width;
     private int height;
+    private String cloudinaryPublicId;
+    private String mainColor;
+    private String hash;
 }

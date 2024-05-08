@@ -11,10 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.text.Normalizer;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class MediaService {
@@ -24,22 +24,52 @@ public class MediaService {
     @Autowired
     private Cloudinary cloudinary;
 
-    public Media uploadMedia(MultipartFile thumbnail, String mediaType) throws IOException {
+    public Media uploadMedia(MultipartFile thumbnail) throws IOException {
         //check if media type is valid
-        try {
-            MediaType.valueOf(mediaType);
-        } catch (IllegalArgumentException e) {
-            String mediaTypeValues = Stream.of(MediaType.values())
-                    .map(Enum::name)
-                    .collect(Collectors.joining(", "));
-            throw new BadRequestException("Value must be one of the following: " + mediaTypeValues);
-        }
-        Map response = cloudinary.uploader().upload(thumbnail.getBytes(), ObjectUtils.emptyMap());
-        String url = response.get("url").toString();
+//        try {
+//            MediaType.valueOf(mediaType);
+//        } catch (IllegalArgumentException e) {
+//            String mediaTypeValues = Stream.of(MediaType.values())
+//                    .map(Enum::name)
+//                    .collect(Collectors.joining(", "));
+//            throw new BadRequestException("Value must be one of the following: " + mediaTypeValues);
+//        }
+
+//        System.out.println(thumbnail.getContentType());
+        String filename = thumbnail.getOriginalFilename();
+        assert filename != null;
+        filename = filename.toLowerCase();
+        filename = Normalizer.normalize(filename, Normalizer.Form.NFKD);
+        //remove extension
+        filename = filename.substring(0, filename.lastIndexOf("."));
+        filename = filename.replaceAll("[^a-zA-Z0-9]+", "-");
+        filename = filename.replaceAll("-{2,}", "-");
+        filename = filename.replaceAll("-$", "");
+        filename = filename.replaceAll("^-", "");
+
+
+        System.out.println(thumbnail.getOriginalFilename());
+
+        Map response = cloudinary.uploader().upload(thumbnail.getBytes(), ObjectUtils.asMap(
+                "public_id", filename,
+                "unique_filename", true,
+                "colors", true,
+                "folder", "media",
+                "overwrite", false
+        ));
+        String url = (String) response.get("url");
         System.out.println(response);
+        System.out.println(response.get("colors"));
         Media media = new Media();
         media.setUrl(url);
-        media.setType(MediaType.valueOf(mediaType));
+        media.setCloudinaryPublicId(response.get("public_id").toString());
+        media.setType(MediaType.valueOf(response.get("resource_type").toString().toUpperCase()));
+        media.setWidth(Integer.parseInt(response.get("width").toString()));
+        media.setHeight(Integer.parseInt(response.get("height").toString()));
+        String hexColor = ((List<List<String>>) response.get("colors")).get(0).get(0);
+
+        media.setMainColor(hexColor);
+        media.setHash(response.get("etag").toString());
         return mediaRepository.save(media);
     }
 
@@ -49,7 +79,6 @@ public class MediaService {
     }
 
     public void deleteMedia(UUID id) {
-
         mediaRepository.deleteById(id);
     }
 }
