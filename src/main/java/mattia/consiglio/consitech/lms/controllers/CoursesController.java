@@ -45,7 +45,7 @@ public class CoursesController {
         if (hasAuthority("ADMIN")) {
             return ResponseEntity.ok(courseService.getAllCourses(page, size, sort, lang, List.of(PublishStatus.values())));
         }
-        return ResponseEntity.ok(courseService.getAllCourses(page, size, sort, lang, List.of(PublishStatus.PUBLISH)));
+        return ResponseEntity.ok(courseService.getAllCourses(page, size, sort, lang, List.of(PublishStatus.PUBLIC)));
     }
 
     @GetMapping("/{id}")

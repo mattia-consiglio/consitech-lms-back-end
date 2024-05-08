@@ -2,13 +2,11 @@ package mattia.consiglio.consitech.lms.controllers;
 
 import mattia.consiglio.consitech.lms.entities.Course;
 import mattia.consiglio.consitech.lms.entities.PublishStatus;
+import mattia.consiglio.consitech.lms.entities.UserRole;
 import mattia.consiglio.consitech.lms.services.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,6 +23,11 @@ public class PublicCoursesController {
                                    @RequestParam(defaultValue = "6") int size,
                                    @RequestParam(defaultValue = "displayOrder") String sort,
                                    @RequestParam(defaultValue = "it") String lang) {
-        return courseService.getAllCourses(page, size, sort, lang, List.of(PublishStatus.PUBLISH));
+        return courseService.getAllCourses(page, size, sort, lang, List.of(PublishStatus.PUBLIC));
+    }
+
+    @GetMapping("/{slug}")
+    public Course getCourseById(@PathVariable("slug") String slug) {
+        return courseService.getCourseBySlug(slug, UserRole.USER);
     }
 }

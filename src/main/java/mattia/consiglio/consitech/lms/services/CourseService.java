@@ -1,10 +1,7 @@
 package mattia.consiglio.consitech.lms.services;
 
-import mattia.consiglio.consitech.lms.entities.Course;
-import mattia.consiglio.consitech.lms.entities.Language;
-import mattia.consiglio.consitech.lms.entities.Media;
-import mattia.consiglio.consitech.lms.entities.PublishStatus;
-import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
+import mattia.consiglio.consitech.lms.entities.*;
+import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewCourseDTO;
 import mattia.consiglio.consitech.lms.payloads.SeoDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateCourseDTO;
@@ -34,9 +31,29 @@ public class CourseService {
     @Autowired
     private MediaService mediaService;
 
-
     public Course getCourse(UUID id) {
-        return courseRepository.findById(id).orElseThrow(() -> new BadRequestException("Course not found"));
+        return courseRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Course", id));
+    }
+
+
+    public Course getCourse(UUID id, UserRole role) {
+        Course course = courseRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Course", id));
+        if (role != UserRole.ADMIN) {
+            if (course.getPublishStatus() != PublishStatus.PUBLIC) {
+                throw new ResourceNotFoundException("Course", id);
+            }
+        }
+        return course;
+    }
+
+    public Course getCourseBySlug(String slug, UserRole role) {
+        Course course = courseRepository.findBySlug(slug).orElseThrow(() -> new ResourceNotFoundException("Course", slug));
+        if (role != UserRole.ADMIN) {
+            if (course.getPublishStatus() != PublishStatus.PUBLIC) {
+                throw new ResourceNotFoundException("Course not found with slug '" + slug + "'");
+            }
+        }
+        return course;
     }
 
     public Course createCourse(NewCourseDTO newCourseDTO) {
@@ -81,7 +98,7 @@ public class CourseService {
 
     public void deleteCourse(UUID id) {
         Course course = this.getCourse(id);
-        seoService.deleteSeo(course.getSeo().getId());
         courseRepository.delete(course);
+        seoService.deleteSeo(course.getSeo().getId());
     }
 }
