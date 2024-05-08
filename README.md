@@ -12,6 +12,6 @@ The objective of the back-end is to develop a REST API that enables interaction 
 
 You can look at project's front-end [here](https://github.com/mattia-consiglio/consitech-lms-front-end)
 
-## ERD [[link](https://drawsql.app/teams/mattia-team/diagrams/consitech-lms)]
+## ERD [[link](https://dbdiagram.io/d/66261b1303593b6b619ad861)]
 
 ## Postman ducumentation [[link](https://documenter.getpostman.com/view/15945754/2sA3JJ9iLt)]
