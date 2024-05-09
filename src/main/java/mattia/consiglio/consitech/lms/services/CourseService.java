@@ -14,8 +14,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
+import static mattia.consiglio.consitech.lms.utils.SecurityUtils.hasAuthority;
 
 @Service
 public class CourseService {
@@ -31,26 +35,27 @@ public class CourseService {
     @Autowired
     private MediaService mediaService;
 
-    public Course getCourse(UUID id) {
-        return courseRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Course", id));
-    }
-
-
-    public Course getCourse(UUID id, UserRole role) {
-        Course course = courseRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Course", id));
-        if (role != UserRole.ADMIN) {
+    public Course getCourse(UUID uuid) {
+        Course course = courseRepository.findById(uuid).orElseThrow(() -> new ResourceNotFoundException("Course", uuid.toString()));
+        if (!hasAuthority(UserRole.ADMIN.name())) {
             if (course.getPublishStatus() != PublishStatus.PUBLIC) {
-                throw new ResourceNotFoundException("Course", id);
+                throw new ResourceNotFoundException("Course", uuid);
             }
         }
         return course;
     }
 
-    public Course getCourseBySlug(String slug, UserRole role) {
+    public Course getCourse(String id) {
+        UUID uuid = checkUUID(id, "id");
+        return this.getCourse(uuid);
+    }
+
+
+    public Course getCourseBySlug(String slug) {
         Course course = courseRepository.findBySlug(slug).orElseThrow(() -> new ResourceNotFoundException("Course", slug));
-        if (role != UserRole.ADMIN) {
+        if (!hasAuthority(UserRole.ADMIN.name())) {
             if (course.getPublishStatus() != PublishStatus.PUBLIC) {
-                throw new ResourceNotFoundException("Course not found with slug '" + slug + "'");
+                throw new ResourceNotFoundException("Course", "slug", slug);
             }
         }
         return course;
@@ -77,8 +82,12 @@ public class CourseService {
         return courseRepository.save(course);
     }
 
-    public Page<Course> getAllCourses(int page, int size, String sort, String lang, List<PublishStatus> publishStatus) {
+    public Page<Course> getAllCourses(int page, int size, String sort, String lang) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        List<PublishStatus> publishStatus = new ArrayList<>(List.of(PublishStatus.PUBLIC));
+        if (hasAuthority(UserRole.ADMIN.name())) {
+            publishStatus.add(PublishStatus.DRAFT);
+        }
         return courseRepository.findByLanguageAndPublishStatus(pageable, lang, publishStatus);
     }
 

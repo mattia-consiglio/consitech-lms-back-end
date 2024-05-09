@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.entities.MediaType;
+import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.repositories.MediaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,9 @@ public class MediaService {
 
 
     public Media getMedia(UUID id) {
+        if (id == null) {
+            throw new BadRequestException("Media id cannot be null");
+        }
         return mediaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Media", id));
     }
 
