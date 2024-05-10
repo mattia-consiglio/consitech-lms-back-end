@@ -18,4 +18,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     Page<Course> findByLanguageAndPublishStatus(Pageable pageable, String languageCode, List<PublishStatus> publishStatus);
 
     Optional<Course> findBySlug(String slug);
+
+    boolean existsBySlug(String slug);
 }

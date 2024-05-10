@@ -28,4 +28,6 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID> {
     List<Lesson> findByPublishStatusAndMainLanguageCode(List<PublishStatus> status, String mainLanguageCode);
 
     Optional<Lesson> findBySlugAndMainLanguageCode(String slug, String mainLanguageCode);
+
+    boolean existsBySlugAndMainLanguageId(String slug, UUID mainLanguageId);
 }

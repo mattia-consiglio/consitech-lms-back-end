@@ -1,5 +1,6 @@
 package mattia.consiglio.consitech.lms.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -15,9 +16,10 @@ import lombok.Setter;
 @Table(name = "lessons")
 public class Lesson extends AbstractContent {
     private String liveEditor;
-    private String videoUrl;
+    private String videoId;
     private String videoThumbnail;
     private String content;
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "course_id")
     private Course course;

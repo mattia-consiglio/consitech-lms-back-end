@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public abstract class AbstractContent extends TranslatableContent {
     @Column(nullable = false)
     private String title;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String slug;
     private String description;
     @Column(nullable = false)

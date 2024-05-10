@@ -4,6 +4,7 @@ import mattia.consiglio.consitech.lms.entities.Course;
 import mattia.consiglio.consitech.lms.entities.Lesson;
 import mattia.consiglio.consitech.lms.entities.PublishStatus;
 import mattia.consiglio.consitech.lms.entities.UserRole;
+import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewLessonDTO;
 import mattia.consiglio.consitech.lms.payloads.SeoDTO;
@@ -37,6 +38,9 @@ public class LessonService {
 
 
     public Lesson createLesson(NewLessonDTO lessonDTO) {
+        if (lessonRepository.existsBySlugAndMainLanguageId(lessonDTO.slug(), lessonDTO.mainLanguageId())) {
+            throw new BadRequestException("Lesson slug already exists");
+        }
         SeoDTO seoDTO = new SeoDTO(lessonDTO.title(), lessonDTO.description(), "", lessonDTO.mainLanguageId());
         Lesson lesson = new Lesson();
         if (lessonDTO.thumbnailId() != null) {
@@ -47,7 +51,7 @@ public class LessonService {
         lesson.setDescription(lessonDTO.description());
         lesson.setMainLanguage(languageService.getLanguage(lessonDTO.mainLanguageId()));
         lesson.setLiveEditor(lessonDTO.liveEditor());
-        lesson.setVideoUrl(lessonDTO.videoUrl());
+        lesson.setVideoId(lessonDTO.videoId());
         lesson.setContent(lessonDTO.content());
         lesson.setPublishStatus(PublishStatus.DRAFT);
         lesson.setDisplayOrder(lessonRepository.count() + 1);
@@ -88,6 +92,9 @@ public class LessonService {
 
     public Lesson updateLesson(UUID id, UpdateLessonDTO lessonDTO) {
         Lesson lesson = this.getLesson(id);
+        if (lessonRepository.existsBySlugAndMainLanguageId(lessonDTO.slug(), lesson.getMainLanguage().getId()) && !lesson.getSlug().equals(lessonDTO.slug())) {
+            throw new BadRequestException("Lesson slug already exists");
+        }
         if (lessonDTO.thumbnailId() != null) {
             lesson.setThumbnail(mediaService.getMedia(lessonDTO.thumbnailId()));
         }
@@ -95,7 +102,7 @@ public class LessonService {
         lesson.setSlug(lessonDTO.slug());
         lesson.setDescription(lessonDTO.description());
         lesson.setLiveEditor(lessonDTO.liveEditor());
-        lesson.setVideoUrl(lessonDTO.videoUrl());
+        lesson.setVideoId(lessonDTO.videoId());
         lesson.setContent(lessonDTO.content());
         lesson.setPublishStatus(PublishStatus.valueOf(lessonDTO.publishStatus()));
         lesson.setCourse(courseService.getCourse(lessonDTO.courseId()));

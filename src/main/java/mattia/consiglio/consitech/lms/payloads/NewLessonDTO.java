@@ -20,7 +20,7 @@ public record NewLessonDTO(
         @NotNull(message = "mainLanguageId is required")
         UUID mainLanguageId,
         String liveEditor,
-        String videoUrl,
+        String videoId,
         String content,
         @NotNull(message = "courseId is required")
         UUID courseId

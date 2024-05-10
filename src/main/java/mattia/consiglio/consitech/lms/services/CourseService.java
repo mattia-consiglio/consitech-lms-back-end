@@ -1,6 +1,7 @@
 package mattia.consiglio.consitech.lms.services;
 
 import mattia.consiglio.consitech.lms.entities.*;
+import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewCourseDTO;
 import mattia.consiglio.consitech.lms.payloads.SeoDTO;
@@ -62,6 +63,9 @@ public class CourseService {
     }
 
     public Course createCourse(NewCourseDTO newCourseDTO) {
+        if (courseRepository.existsBySlug(newCourseDTO.slug())) {
+            throw new BadRequestException("Course slug already exists");
+        }
         Language language = languageService.getLanguage(newCourseDTO.mainLanguageId());
         SeoDTO seoDTO = new SeoDTO(newCourseDTO.title(), newCourseDTO.description(), "", newCourseDTO.mainLanguageId());
         Media thumbnail = null;
@@ -91,12 +95,39 @@ public class CourseService {
         return courseRepository.findByLanguageAndPublishStatus(pageable, lang, publishStatus);
     }
 
+    public List<Lesson> getLessonsByCourseId(String courseId) {
+        Course course = this.getCourse(courseId);
+        if (hasAuthority(UserRole.ADMIN.name())) {
+            return course.getLessons();
+        } else {
+            return course.getLessons().stream()
+                    .filter(lesson -> lesson.getPublishStatus() == PublishStatus.PUBLIC)
+                    .toList();
+        }
+    }
+
+    public List<Lesson> getLessonsByCourseSlug(String slug) {
+        Course course = this.getCourseBySlug(slug);
+        if (hasAuthority(UserRole.ADMIN.name())) {
+            return course.getLessons();
+        } else {
+            return course.getLessons().stream()
+                    .filter(lesson -> lesson.getPublishStatus() == PublishStatus.PUBLIC)
+                    .toList();
+        }
+    }
+
     public Course updateCourse(UUID id, UpdateCourseDTO courseDTO) {
+
         Media thumbnail = null;
         if (courseDTO.thumbnailId() != null) {
             thumbnail = mediaService.getMedia(courseDTO.thumbnailId());
         }
         Course course = this.getCourse(id);
+        if (courseRepository.existsBySlug(courseDTO.slug()) && !course.getSlug().equals(courseDTO.slug())) {
+            throw new BadRequestException("Course slug already exists");
+        }
+
         course.setTitle(courseDTO.title());
         course.setDescription(courseDTO.description());
         course.setSlug(courseDTO.slug());

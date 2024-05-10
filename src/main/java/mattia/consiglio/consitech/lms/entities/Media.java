@@ -1,5 +1,6 @@
 package mattia.consiglio.consitech.lms.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -25,7 +26,9 @@ public class Media {
     private String alt;
     private int width;
     private int height;
+    @JsonIgnore
     private String cloudinaryPublicId;
     private String mainColor;
+    @JsonIgnore
     private String hash;
 }

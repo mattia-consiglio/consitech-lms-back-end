@@ -23,7 +23,7 @@ public record UpdateLessonDTO(
         String publishStatus,
         UUID thumbnailId,
         String liveEditor,
-        String videoUrl,
+        String videoId,
         String content,
         @NotNull(message = "courseId is required")
         UUID courseId
