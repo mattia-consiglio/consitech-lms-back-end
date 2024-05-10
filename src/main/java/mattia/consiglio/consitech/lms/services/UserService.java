@@ -87,13 +87,11 @@ public class UserService {
     }
 
     public void PasswordCheck(User user, String newPassword, String oldPassword, String username, String email) {
-        if (oldPassword.equals(newPassword) && !passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new BadRequestException("Old password is not correct and new password is the same");
-        } else if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new BadRequestException("Old password is not correct");
-        } else if (oldPassword.equals(newPassword)) {
+        } else if (passwordEncoder.matches(newPassword, user.getPassword())) {
             throw new BadRequestException("New password cannot be the same as old password");
-        } else if (newPassword.equals(username) || newPassword.equals(email)) {
+        } else if (newPassword.contains(username) || newPassword.contains(email)) {
             throw new BadRequestException("New password cannot be the same as username or email");
         }
     }
