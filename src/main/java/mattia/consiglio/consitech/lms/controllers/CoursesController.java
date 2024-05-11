@@ -1,10 +1,13 @@
 package mattia.consiglio.consitech.lms.controllers;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import mattia.consiglio.consitech.lms.entities.Course;
+import mattia.consiglio.consitech.lms.entities.Lesson;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.payloads.NewCourseDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateCourseDTO;
 import mattia.consiglio.consitech.lms.services.CourseService;
+import mattia.consiglio.consitech.lms.utils.View;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -13,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL;
@@ -45,6 +49,13 @@ public class CoursesController {
     @GetMapping("/{id}")
     public Course getCourseById(@PathVariable("id") String id) {
         return courseService.getCourse(id);
+    }
+
+    @GetMapping("/slug/{slug}/lessons")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @JsonView(View.Admin.class)
+    public List<Lesson> getLessonsByCourseSlug(@PathVariable("slug") String slug) {
+        return courseService.getLessonsByCourseSlug(slug);
     }
 
 

@@ -1,8 +1,10 @@
 package mattia.consiglio.consitech.lms.controllers;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import mattia.consiglio.consitech.lms.entities.Course;
 import mattia.consiglio.consitech.lms.entities.Lesson;
 import mattia.consiglio.consitech.lms.services.CourseService;
+import mattia.consiglio.consitech.lms.utils.View;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +38,7 @@ public class PublicCoursesController {
     }
 
     @GetMapping("/slug/{slug}/lessons")
+    @JsonView(View.Public.class)
     public List<Lesson> getLessonsByCourseSlug(@PathVariable("slug") String slug) {
         return courseService.getLessonsByCourseSlug(slug);
     }

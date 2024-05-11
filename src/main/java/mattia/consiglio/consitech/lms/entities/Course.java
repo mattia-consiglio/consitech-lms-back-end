@@ -1,5 +1,6 @@
 package mattia.consiglio.consitech.lms.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -16,6 +17,7 @@ import java.util.List;
 @Table(name = "courses")
 public class Course extends AbstractContent {
     private int enrolledStudents;
+    @JsonIgnore
     @OneToMany(mappedBy = "course")
     private List<Lesson> lessons;
 }

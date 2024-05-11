@@ -127,6 +127,9 @@ public class CourseService {
         if (courseRepository.existsBySlug(courseDTO.slug()) && !course.getSlug().equals(courseDTO.slug())) {
             throw new BadRequestException("Course slug already exists");
         }
+        if (courseDTO.publishStatus() != null && courseDTO.publishStatus().equals(PublishStatus.PUBLIC.name()) && courseDTO.thumbnailId() == null) {
+            throw new BadRequestException("Thumbnail is required for public courses");
+        }
 
         course.setTitle(courseDTO.title());
         course.setDescription(courseDTO.description());

@@ -96,8 +96,21 @@ public class LessonService {
         if (lessonRepository.existsBySlugAndMainLanguageId(lessonDTO.slug(), lesson.getMainLanguage().getId()) && !lesson.getSlug().equals(lessonDTO.slug())) {
             throw new BadRequestException("Lesson slug already exists");
         }
+        if (lessonDTO.publishStatus() != null && lessonDTO.publishStatus().equals(PublishStatus.PUBLIC.name())) {
+            List<String> requiredField = new ArrayList<>();
+            if (lessonDTO.content() == null) {
+                requiredField.add("content");
+            }
+            if (lessonDTO.thumbnailId() == null) {
+                requiredField.add("thumbnail");
+            }
+
+        }
         if (lessonDTO.thumbnailId() != null) {
             lesson.setThumbnail(mediaService.getMedia(lessonDTO.thumbnailId()));
+        }
+        if (lesson.getCreatedAt() == null) {
+            lesson.setCreatedAt(LocalDateTime.now());
         }
         lesson.setTitle(lessonDTO.title());
         lesson.setSlug(lessonDTO.slug());
