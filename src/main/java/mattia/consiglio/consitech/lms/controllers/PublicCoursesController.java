@@ -28,11 +28,13 @@ public class PublicCoursesController {
     }
 
     @GetMapping("slug/{slug}")
+    @JsonView(View.Internal.class)
     public Course getCourseBySlug(@PathVariable("slug") String slug) {
         return courseService.getCourseBySlug(slug);
     }
 
     @GetMapping("/{id}")
+    @JsonView(View.Internal.class)
     public Course getCourseById(@PathVariable("id") String id) {
         return courseService.getCourse(id);
     }
