@@ -31,6 +31,14 @@ public class AuthController extends BaseController {
         return authService.login(loginAuthDTO);
     }
 
+    @PostMapping("revalidate")
+    public JWTDTO revalidate(@RequestBody @Validated JWTDTO jwtDTO, BindingResult validation) {
+        if (validation.hasErrors()) {
+            throw new BadRequestException("Invalid data", validation.getAllErrors());
+        }
+        return authService.revalidate(jwtDTO);
+    }
+
 
     @PostMapping("register")
     @ResponseStatus(HttpStatus.CREATED)

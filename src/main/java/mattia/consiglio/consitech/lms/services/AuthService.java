@@ -1,5 +1,8 @@
 package mattia.consiglio.consitech.lms.services;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwsHeader;
+import io.jsonwebtoken.Jwt;
 import mattia.consiglio.consitech.lms.entities.User;
 import mattia.consiglio.consitech.lms.exceptions.UnauthorizedException;
 import mattia.consiglio.consitech.lms.payloads.JWTDTO;
@@ -23,6 +26,16 @@ public class AuthService {
         if (user == null || !passwordEncoder.matches(loginAuthDTO.password(), user.getPassword())) {
             throw new UnauthorizedException("Credentials not valid. Try login again");
         }
+        return new JWTDTO(jwtTools.generateToken(user));
+    }
+
+    public JWTDTO revalidate(JWTDTO jwtDTO) {
+        Jwt<JwsHeader, Claims> jwt = jwtTools.validateToken(jwtDTO.authorization());
+
+        if (jwt == null) {
+            throw new UnauthorizedException("Credentials not valid. Try login again");
+        }
+        User user = utenteService.getUserByUsernameOrEmail(jwt.getPayload().getSubject());
         return new JWTDTO(jwtTools.generateToken(user));
     }
 

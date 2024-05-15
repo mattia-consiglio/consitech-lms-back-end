@@ -1,8 +1,6 @@
 package mattia.consiglio.consitech.lms.security;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
 import mattia.consiglio.consitech.lms.entities.User;
@@ -36,9 +34,9 @@ public class JWTTools {
                 .compact();
     }
 
-    public void validateToken(String token) {
+    public Jws<Claims> validateToken(String token) {
         try {
-            Jwts.parser()
+            return Jwts.parser()
                     .requireIssuer(issuer)
                     .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
                     .build()
