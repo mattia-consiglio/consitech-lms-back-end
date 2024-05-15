@@ -70,11 +70,17 @@ public class CoursesController {
     }
 
 
+    @PutMapping("/trash/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Course trashCourse(@PathVariable("id") String id) {
+        return courseService.trashCourse(id);
+    }
+
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCourse(@PathVariable("id") String id) {
-        UUID uuid = checkUUID(id, "id");
-        courseService.deleteCourse(uuid);
+        courseService.deleteCourse(id);
     }
 }

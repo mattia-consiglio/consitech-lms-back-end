@@ -47,7 +47,7 @@ public class CourseService {
     }
 
     public Course getCourse(String id) {
-        UUID uuid = checkUUID(id, "id");
+        UUID uuid = checkUUID(id, "course id");
         return this.getCourse(uuid);
     }
 
@@ -139,9 +139,27 @@ public class CourseService {
         return courseRepository.save(course);
     }
 
+    public Course trashCourse(String id) {
+        UUID uuid = checkUUID(id, "course id");
+        return this.trashCourse(uuid);
+    }
+
+    public Course trashCourse(UUID id) {
+        Course course = this.getCourse(id);
+        course.setPublishStatus(PublishStatus.TRASHED);
+        return courseRepository.save(course);
+    }
+
+    public void deleteCourse(String id) {
+        UUID uuid = checkUUID(id, "course id");
+        this.deleteCourse(uuid);
+    }
+
     public void deleteCourse(UUID id) {
         Course course = this.getCourse(id);
         courseRepository.delete(course);
         seoService.deleteSeo(course.getSeo().getId());
     }
+
+
 }
