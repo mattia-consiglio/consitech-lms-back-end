@@ -4,7 +4,7 @@ import mattia.consiglio.consitech.lms.entities.*;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewCourseDTO;
-import mattia.consiglio.consitech.lms.payloads.SeoDTO;
+import mattia.consiglio.consitech.lms.payloads.NewSeoDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateCourseDTO;
 import mattia.consiglio.consitech.lms.repositories.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +67,7 @@ public class CourseService {
             throw new BadRequestException("Course slug already exists");
         }
         Language language = languageService.getLanguage(newCourseDTO.mainLanguageId());
-        SeoDTO seoDTO = new SeoDTO(newCourseDTO.title(), newCourseDTO.description(), "", newCourseDTO.mainLanguageId());
+        NewSeoDTO newSeoDTO = new NewSeoDTO(newCourseDTO.title(), newCourseDTO.description(), "", newCourseDTO.mainLanguageId());
         Media thumbnail = null;
         if (newCourseDTO.thumbnailId() != null) {
             thumbnail = mediaService.getMedia(newCourseDTO.thumbnailId());
@@ -77,7 +77,7 @@ public class CourseService {
         course.setDescription(newCourseDTO.description());
         course.setSlug(newCourseDTO.slug());
         course.setMainLanguage(language);
-        course.setSeo(seoService.createSeo(seoDTO));
+        course.setSeo(seoService.createSeo(newSeoDTO));
         course.setEnrolledStudents(0);
         course.setThumbnail(thumbnail);
         course.setDisplayOrder(courseRepository.count() + 1);

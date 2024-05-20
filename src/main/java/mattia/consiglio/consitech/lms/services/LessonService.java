@@ -7,10 +7,14 @@ import mattia.consiglio.consitech.lms.entities.UserRole;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewLessonDTO;
-import mattia.consiglio.consitech.lms.payloads.SeoDTO;
+import mattia.consiglio.consitech.lms.payloads.NewSeoDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateLessonDTO;
 import mattia.consiglio.consitech.lms.repositories.LessonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -42,7 +46,7 @@ public class LessonService {
         if (lessonRepository.existsBySlugAndMainLanguageId(lessonDTO.slug(), lessonDTO.mainLanguageId())) {
             throw new BadRequestException("Lesson slug already exists");
         }
-        SeoDTO seoDTO = new SeoDTO(lessonDTO.title(), lessonDTO.description(), "", lessonDTO.mainLanguageId());
+        NewSeoDTO newSeoDTO = new NewSeoDTO(lessonDTO.title(), lessonDTO.description(), "", lessonDTO.mainLanguageId());
         Lesson lesson = new Lesson();
         if (lessonDTO.thumbnailId() != null) {
             lesson.setThumbnail(mediaService.getMedia(lessonDTO.thumbnailId()));
@@ -57,7 +61,7 @@ public class LessonService {
         lesson.setPublishStatus(PublishStatus.DRAFT);
         lesson.setDisplayOrder(lessonRepository.count() + 1);
         lesson.setCourse(courseService.getCourse(lessonDTO.courseId()));
-        lesson.setSeo(seoService.createSeo(seoDTO));
+        lesson.setSeo(seoService.createSeo(newSeoDTO));
         return lessonRepository.save(lesson);
     }
 
@@ -130,6 +134,18 @@ public class LessonService {
             publishStatus.add(PublishStatus.DRAFT);
         }
         return lessonRepository.findByPublishStatusAndMainLanguageCode(publishStatus, lang);
+    }
+
+    public Page<Lesson> getAllLessons(int page, int size, String sort, String direction) {
+        Sort.Direction sortDirection = Sort.Direction.ASC; // Default sort direction
+
+        if (direction != null && direction.equalsIgnoreCase("desc")) {
+            sortDirection = Sort.Direction.DESC;
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+
+        return lessonRepository.findAll(pageable);
     }
 
     public List<Lesson> getLessonsByCourse(String courseId, String lang) {

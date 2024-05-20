@@ -2,7 +2,8 @@ package mattia.consiglio.consitech.lms.controllers;
 
 import mattia.consiglio.consitech.lms.entities.Seo;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
-import mattia.consiglio.consitech.lms.payloads.SeoDTO;
+import mattia.consiglio.consitech.lms.payloads.NewSeoDTO;
+import mattia.consiglio.consitech.lms.payloads.UpdateSeoDTO;
 import mattia.consiglio.consitech.lms.services.SeoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,16 +24,16 @@ public class SeoController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Seo createSeo(@Validated @RequestBody SeoDTO seoDTO, BindingResult validation) {
+    public Seo createSeo(@Validated @RequestBody NewSeoDTO newSeoDTO, BindingResult validation) {
         if (validation.hasErrors()) {
             throw new BadRequestException("Invalid data", validation.getAllErrors());
         }
-        return seoService.createSeo(seoDTO);
+        return seoService.createSeo(newSeoDTO);
     }
 
     @PutMapping("{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Seo updateSeo(@PathVariable("id") String id, @Validated @RequestBody SeoDTO seoDTO, BindingResult validation) {
+    public Seo updateSeo(@PathVariable("id") String id, @Validated @RequestBody UpdateSeoDTO seoDTO, BindingResult validation) {
         UUID uuid = checkUUID(id, "id");
         if (validation.hasErrors()) {
             throw new BadRequestException("Invalid data", validation.getAllErrors());

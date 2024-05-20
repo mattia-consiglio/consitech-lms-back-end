@@ -6,6 +6,7 @@ import mattia.consiglio.consitech.lms.payloads.NewLessonDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateLessonDTO;
 import mattia.consiglio.consitech.lms.services.LessonService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
@@ -32,8 +33,17 @@ public class LessonsController {
         return lessonService.createLesson(lesson);
     }
 
+    @GetMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Page<Lesson> getLessons(@RequestParam(defaultValue = "0") int page,
+                                   @RequestParam(defaultValue = "6") int size,
+                                   @RequestParam(defaultValue = "displayOrder") String sort,
+                                   @RequestParam(defaultValue = "asc") String direction) {
+        return lessonService.getAllLessons(page, size, sort, direction);
+    }
+
     @GetMapping("/course/{courseId}")
-    public List<Lesson> getLessons(@PathVariable("courseId") String courseId, @RequestParam(defaultValue = "it") String lang) {
+    public List<Lesson> getLessonsByCourseId(@PathVariable("courseId") String courseId, @RequestParam(defaultValue = "it") String lang) {
         return lessonService.getLessonsByCourse(courseId, lang);
     }
 

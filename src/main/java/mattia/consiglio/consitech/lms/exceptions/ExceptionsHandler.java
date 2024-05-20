@@ -12,6 +12,7 @@ import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.IOException;
@@ -29,7 +30,7 @@ public class ExceptionsHandler {
             return new ErrorDTO(
                     e.getMessage() + ": "
                             + e.getErrors().stream().map(objectError -> objectError.getDefaultMessage())
-                                    .collect(Collectors.joining(". ")),
+                            .collect(Collectors.joining(". ")),
                     LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST.getReasonPhrase());
         }
         return new ErrorDTO(e.getMessage(), LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(),
@@ -110,6 +111,12 @@ public class ExceptionsHandler {
     public ErrorDTO handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         return new ErrorDTO("The method " + e.getMethod() + " is not supported", LocalDateTime.now(),
                 HttpStatus.METHOD_NOT_ALLOWED.value(), HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase());
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDTO handleMultipartException(MultipartException e) {
+        return new ErrorDTO("Error parsing multipart request", LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST.getReasonPhrase());
     }
 
     @ExceptionHandler(RuntimeException.class)
