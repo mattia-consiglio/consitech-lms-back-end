@@ -46,6 +46,13 @@ public class CoursesController {
         return courseService.getAllCourses(page, size, sort, lang);
     }
 
+    @GetMapping("/list")
+    @JsonView(View.Public.class)
+    public List<Course> getCoursesList(@RequestParam(defaultValue = "it") String lang) {
+        return courseService.getAllCourses(lang);
+    }
+
+
     @GetMapping("/{id}")
     public Course getCourseById(@PathVariable("id") String id) {
         return courseService.getCourse(id);

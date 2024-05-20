@@ -88,26 +88,35 @@ public class CourseService {
 
     public Page<Course> getAllCourses(int page, int size, String sort, String lang) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        List<PublishStatus> publishStatus = getPublishStatusList();
+        return courseRepository.findByLanguageAndPublishStatus(pageable, lang, publishStatus);
+    }
+
+    public List<Course> getAllCourses(String lang) {
+        List<PublishStatus> publishStatus = getPublishStatusList();
+        return courseRepository.findByLanguageAndPublishStatus(lang, publishStatus);
+    }
+
+    private List<PublishStatus> getPublishStatusList() {
         List<PublishStatus> publishStatus = new ArrayList<>(List.of(PublishStatus.PUBLIC));
         if (hasAuthority(UserRole.ADMIN.name())) {
             publishStatus.add(PublishStatus.DRAFT);
         }
-        return courseRepository.findByLanguageAndPublishStatus(pageable, lang, publishStatus);
+        return publishStatus;
     }
+
 
     public List<Lesson> getLessonsByCourseId(String courseId) {
         Course course = this.getCourse(courseId);
-        if (hasAuthority(UserRole.ADMIN.name())) {
-            return course.getLessons();
-        } else {
-            return course.getLessons().stream()
-                    .filter(lesson -> lesson.getPublishStatus() == PublishStatus.PUBLIC)
-                    .toList();
-        }
+        return filterLessons(course);
     }
 
     public List<Lesson> getLessonsByCourseSlug(String slug) {
         Course course = this.getCourseBySlug(slug);
+        return filterLessons(course);
+    }
+
+    private List<Lesson> filterLessons(Course course) {
         if (hasAuthority(UserRole.ADMIN.name())) {
             return course.getLessons();
         } else {

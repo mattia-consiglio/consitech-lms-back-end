@@ -17,6 +17,9 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     @Query("SELECT c FROM Course c  WHERE LOWER(c.mainLanguage.code) = LOWER(:languageCode) AND c.publishStatus IN :publishStatus")
     Page<Course> findByLanguageAndPublishStatus(Pageable pageable, String languageCode, List<PublishStatus> publishStatus);
 
+    @Query("SELECT c FROM Course c  WHERE LOWER(c.mainLanguage.code) = LOWER(:languageCode) AND c.publishStatus IN :publishStatus")
+    List<Course> findByLanguageAndPublishStatus(String languageCode, List<PublishStatus> publishStatus);
+
     Optional<Course> findBySlug(String slug);
 
     boolean existsBySlug(String slug);
