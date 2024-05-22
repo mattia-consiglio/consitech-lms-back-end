@@ -1,38 +1,34 @@
 package mattia.consiglio.consitech.lms.entities;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.UUID;
+import mattia.consiglio.consitech.lms.utils.View;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @Table(name = "lessons")
-public class Lesson {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Setter(value = AccessLevel.NONE)
-    private UUID id;
-    private String title;
-    private String slug;
-    private String description;
-    private String thumbnail;
-    private String live_editor;
-    private String video_url;
-    private String video_thumbnail;
+
+public class Lesson extends AbstractContent {
+    @JsonView(View.Internal.class)
+    private String liveEditor;
+
+    @JsonView(View.Internal.class)
+    private String videoId;
+
+    @JsonView(View.Internal.class)
+    private String videoThumbnail;
+
+    @Column(columnDefinition = "TEXT")
+    @JsonView(View.Internal.class)
     private String content;
+
     @ManyToOne
     @JoinColumn(name = "course_id")
+    @JsonView(View.Internal.class)
     private Course course;
-    @ManyToOne
-    @JoinColumn(name = "seo_id")
-    private Seo seo;
-    @ManyToOne
-    @JoinColumn(name = "main_language_id")
-    private Language mainLanguage;
 }

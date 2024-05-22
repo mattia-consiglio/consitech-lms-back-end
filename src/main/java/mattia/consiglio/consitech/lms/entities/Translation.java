@@ -12,8 +12,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "tranlations")
-public class Tranlation {
+@Table(name = "translations")
+public class Translation {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Setter(value = AccessLevel.NONE)
@@ -24,5 +24,9 @@ public class Tranlation {
     private String tableName;
     private String fieldName;
     private String fieldValue;
-    private UUID resource;
+    @Enumerated(EnumType.STRING)
+    private PublishStatus publishStatus;
+    @ManyToOne
+    @JoinColumn(name = "resource_id")
+    private TranslatableContent resource;
 }

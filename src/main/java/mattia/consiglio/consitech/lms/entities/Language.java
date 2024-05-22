@@ -19,12 +19,10 @@ public class Language {
     @Setter(value = AccessLevel.NONE)
     private UUID id;
     private String code; //it, en
-    private String iso; //IT-it EN-en
     private String language;
 
-    public Language(String code, String iso, String language) {
+    public Language(String code, String language) {
         this.code = code;
-        this.iso = iso;
         this.language = language;
     }
 }

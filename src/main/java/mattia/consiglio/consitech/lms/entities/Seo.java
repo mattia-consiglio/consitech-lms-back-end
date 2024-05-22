@@ -13,7 +13,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @Table(name = "seo")
-public class Seo {
+public class Seo extends TranslatableContent {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Setter(value = AccessLevel.NONE)
@@ -22,7 +22,11 @@ public class Seo {
     private String description;
     @Column(name = "ld_json")
     private String ldJson;
-    @ManyToOne
-    @JoinColumn(name = "language_id")
-    private Language language;
+
+    public Seo(String title, String description, String ldJson, Language mainLanguage) {
+        super(mainLanguage);
+        this.title = title;
+        this.description = description;
+        this.ldJson = ldJson;
+    }
 }

@@ -3,8 +3,8 @@ package mattia.consiglio.consitech.lms.payloads;
 import jakarta.validation.constraints.NotBlank;
 
 public record LoginAuthDTO(
-        @NotBlank(message = "Username or email is required")
+        @NotBlank(message = "usernameOrEmail is required")
         String usernameOrEmail,
-        @NotBlank(message = "Password is required")
+        @NotBlank(message = "password is required")
         String password) {
 }
