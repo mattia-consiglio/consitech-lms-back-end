@@ -14,4 +14,4 @@ You can look at project's front-end [here](https://github.com/mattia-consiglio/c
 
 ## ERD [[link](https://dbdiagram.io/d/66261b1303593b6b619ad861)]
 
-## Postman ducumentation [[link](https://documenter.getpostman.com/view/15945754/2sA3JJ9iLt)]
+## Postman ducumentation [<a href="https://documenter.getpostman.com/view/15945754/2sA3JJ9iLt" target="_blank" rel="nofollow noopener">link</a>]
