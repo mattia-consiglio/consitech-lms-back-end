@@ -71,7 +71,7 @@ public class MediaService {
                 "folder", "media",
                 "overwrite", false
         ));
-        String url = (String) response.get("url");
+        String url = (String) response.get("secure_url");
         System.out.println(response);
         System.out.println(response.get("colors"));
         Media media = new Media();
@@ -140,5 +140,41 @@ public class MediaService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
         return mediaRepository.findAll(pageable);
+    }
+
+    public void syncMedia() {
+        //get all media from cloudinary and save them in the database in case they are not already there
+        try {
+//            ApiResponse apiResponse = cloudinary.api().resourceByAssetID("85673c8286be9af8e0a1aee250035460?colors=true", ObjectUtils.asMap(
+//                    "colors", true
+//            ));
+//            System.out.println(apiResponse);
+
+
+//            ApiResponse response = cloudinary.api().resourcesByAssetFolder("media", ObjectUtils.asMap(
+//                    "tags", true,
+//                    "metadata", true
+//            ));
+//            List<Map> resources = (List<Map>) response.get("resources");
+//            System.out.println("resources " + resources);
+//            for (Map resource : resources) {
+//                String publicId = resource.get("public_id").toString();
+//                Media media = mediaRepository.findByCloudinaryPublicId(publicId);
+//                if (media == null) {
+//                    media = new Media();
+//                    media.setUrl(resource.get("secure_url").toString());
+//                    media.setUploadedAt(LocalDateTime.now());
+//                    media.setCloudinaryPublicId(publicId);
+//                    media.setType(MediaType.valueOf(resource.get("resource_type").toString().toUpperCase()));
+//                    media.setWidth(Integer.parseInt(resource.get("width").toString()));
+//                    media.setHeight(Integer.parseInt(resource.get("height").toString()));
+////                    media.setMainColor(((List<List<String>>) resource.get("colors")).get(0).get(0));
+////                    media.setHash(resource.get("etag").toString());
+//                    mediaRepository.save(media);
+//                }
+//            }
+        } catch (Exception e) {
+            throw new BadRequestException("Error syncing media from Cloudinary. " + e.getMessage());
+        }
     }
 }
