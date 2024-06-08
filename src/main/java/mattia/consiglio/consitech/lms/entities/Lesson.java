@@ -14,6 +14,7 @@ import mattia.consiglio.consitech.lms.utils.View;
 @Table(name = "lessons")
 
 public class Lesson extends AbstractContent {
+    @Column(columnDefinition = "TEXT")
     @JsonView(View.Internal.class)
     private String liveEditor;
 
