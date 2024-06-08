@@ -28,7 +28,7 @@ public class PublicCoursesController {
     }
 
     @GetMapping("slug/{slug}")
-    @JsonView(View.Internal.class)
+    @JsonView(View.Public.class)
     public Course getCourseBySlug(@PathVariable("slug") String slug) {
         return courseService.getCourseBySlug(slug);
     }
