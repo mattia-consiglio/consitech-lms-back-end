@@ -11,8 +11,8 @@ RUN mvn -f /usr/src/app/pom.xml clean package -DskipTests
 # Fase di esecuzione
 FROM openjdk:21-jdk-slim
 
-# Espone la porta 10000 per l'applicazione
-EXPOSE 10000
+# Espone la porta 8080 per l'applicazione
+EXPOSE 8080
 
 # Copia l'applicazione compilata dalla fase di compilazione
 COPY --from=build /usr/src/app/target/*.jar app.jar
