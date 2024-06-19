@@ -10,7 +10,7 @@
     </parent>
     <groupId>mattia.consiglio</groupId>
     <artifactId>consitech.lms</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.1.4</version>
     <name>consitech.lms</name>
     <description>Consitech LMS REST API</description>
     <properties>
@@ -65,7 +65,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>com.cloudinary</groupId>
             <artifactId>cloudinary-http45</artifactId>
