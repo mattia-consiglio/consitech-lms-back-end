@@ -3,6 +3,7 @@ package mattia.consiglio.consitech.lms.services;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import mattia.consiglio.consitech.lms.entities.Media;
+import mattia.consiglio.consitech.lms.entities.MediaImage;
 import mattia.consiglio.consitech.lms.entities.MediaType;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
@@ -74,7 +75,7 @@ public class MediaService {
         String url = (String) response.get("secure_url");
         System.out.println(response);
         System.out.println(response.get("colors"));
-        Media media = new Media();
+        MediaImage media = new MediaImage();
         media.setUrl(url);
         media.setUploadedAt(LocalDateTime.now());
         media.setCloudinaryPublicId(response.get("public_id").toString());
@@ -118,15 +119,19 @@ public class MediaService {
 
     public void deleteMedia(UUID id) {
         Media media = this.getMedia(id);
-        media.getContents().forEach(abstractContent -> {
-            abstractContent.setThumbnail(null);
-            abstractContentRepository.save(abstractContent);
-        });
-        try {
-            cloudinary.api().deleteResources(Collections.singletonList(media.getCloudinaryPublicId()),
-                    ObjectUtils.asMap("type", "upload", "resource_type", "image"));
-        } catch (Exception exception) {
-            throw new BadRequestException("Error deleting file form Cloudinary. " + exception.getMessage());
+        if (media.getType() == MediaType.IMAGE) {
+            MediaImage mediaImage = (MediaImage) media;
+
+            mediaImage.getContents().forEach(abstractContent -> {
+                abstractContent.setThumbnail(null);
+                abstractContentRepository.save(abstractContent);
+            });
+            try {
+                cloudinary.api().deleteResources(Collections.singletonList(mediaImage.getCloudinaryPublicId()),
+                        ObjectUtils.asMap("type", "upload", "resource_type", "image"));
+            } catch (Exception exception) {
+                throw new BadRequestException("Error deleting file form Cloudinary. " + exception.getMessage());
+            }
         }
         mediaRepository.delete(media);
     }

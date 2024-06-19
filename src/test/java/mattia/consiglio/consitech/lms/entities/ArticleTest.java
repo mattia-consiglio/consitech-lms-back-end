@@ -26,7 +26,7 @@ class ArticleTest {
         String content = "This is the content of the test article";
         Seo seo = new Seo();
         Language language = new Language();
-        Media thumbnail = new Media();
+        MediaImage thumbnail = new MediaImage();
 
         article.setTitle(title);
         article.setSlug(slug);
