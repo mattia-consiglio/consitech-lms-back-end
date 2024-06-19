@@ -10,8 +10,6 @@ import lombok.Setter;
 import mattia.consiglio.consitech.lms.utils.View;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -19,7 +17,8 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @Table(name = "media")
-public class Media {
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Media {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Setter(value = AccessLevel.NONE)
@@ -33,19 +32,8 @@ public class Media {
     private MediaType type;
     @JsonView(View.Public.class)
     private String alt;
-    @JsonView(View.Public.class)
-    private int width;
-    @JsonView(View.Public.class)
-    private int height;
-    @JsonIgnore
-    private String cloudinaryPublicId;
-    @JsonView(View.Public.class)
-    private String mainColor;
     @JsonIgnore
     private String hash;
     @JsonView(View.Public.class)
     private LocalDateTime uploadedAt;
-    @JsonIgnore
-    @OneToMany(mappedBy = "thumbnail")
-    List<AbstractContent> contents = new ArrayList<>();
 }

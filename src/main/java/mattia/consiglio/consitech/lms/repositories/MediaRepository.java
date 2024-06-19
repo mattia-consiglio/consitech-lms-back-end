@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface MediaRepository extends JpaRepository<Media, UUID> {
-    Media findByCloudinaryPublicId(String publicId);
+//    Media findByCloudinaryPublicId(String publicId);
 }
