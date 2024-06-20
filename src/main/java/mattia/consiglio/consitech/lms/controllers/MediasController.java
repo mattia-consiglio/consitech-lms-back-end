@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL;
@@ -27,7 +28,7 @@ public class MediasController {
     @PostMapping("/upload")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
-    public Media uploadMedia(@RequestParam("thumbnail") MultipartFile thumbnail) throws IOException {
+    public Media uploadMedia(@RequestParam("thumbnail") MultipartFile thumbnail) throws IOException, NoSuchAlgorithmException {
         return mediaService.uploadMedia(thumbnail);
     }
 

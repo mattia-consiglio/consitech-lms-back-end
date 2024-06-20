@@ -68,9 +68,9 @@ public class CourseService {
         }
         Language language = languageService.getLanguage(newCourseDTO.mainLanguageId());
         NewSeoDTO newSeoDTO = new NewSeoDTO(newCourseDTO.title(), newCourseDTO.description(), "", newCourseDTO.mainLanguageId());
-        Media thumbnail = null;
+        MediaImage thumbnail = null;
         if (newCourseDTO.thumbnailId() != null) {
-            thumbnail = mediaService.getMedia(newCourseDTO.thumbnailId());
+            thumbnail = (MediaImage) mediaService.getMedia(newCourseDTO.thumbnailId());
         }
         Course course = new Course();
         course.setTitle(newCourseDTO.title());
@@ -79,7 +79,7 @@ public class CourseService {
         course.setMainLanguage(language);
         course.setSeo(seoService.createSeo(newSeoDTO));
         course.setEnrolledStudents(0);
-        course.setThumbnail(thumbnail);
+        course.setThumbnailImage(thumbnail);
         course.setDisplayOrder(courseRepository.count() + 1);
         course.setPublishStatus(PublishStatus.DRAFT);
         course.setCreatedAt(LocalDateTime.now());
@@ -128,9 +128,9 @@ public class CourseService {
 
     public Course updateCourse(UUID id, UpdateCourseDTO courseDTO) {
 
-        Media thumbnail = null;
+        MediaImage thumbnail = null;
         if (courseDTO.thumbnailId() != null) {
-            thumbnail = mediaService.getMedia(courseDTO.thumbnailId());
+            thumbnail = (MediaImage) mediaService.getMedia(courseDTO.thumbnailId());
         }
         Course course = this.getCourse(id);
         if (courseRepository.existsBySlug(courseDTO.slug()) && !course.getSlug().equals(courseDTO.slug())) {
@@ -143,7 +143,7 @@ public class CourseService {
         course.setTitle(courseDTO.title());
         course.setDescription(courseDTO.description());
         course.setSlug(courseDTO.slug());
-        course.setThumbnail(thumbnail);
+        course.setThumbnailImage(thumbnail);
         course.setPublishStatus(PublishStatus.valueOf(courseDTO.publishStatus()));
         return courseRepository.save(course);
     }

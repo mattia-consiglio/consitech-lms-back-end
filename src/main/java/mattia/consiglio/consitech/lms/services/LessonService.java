@@ -1,9 +1,6 @@
 package mattia.consiglio.consitech.lms.services;
 
-import mattia.consiglio.consitech.lms.entities.Course;
-import mattia.consiglio.consitech.lms.entities.Lesson;
-import mattia.consiglio.consitech.lms.entities.PublishStatus;
-import mattia.consiglio.consitech.lms.entities.UserRole;
+import mattia.consiglio.consitech.lms.entities.*;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewLessonDTO;
@@ -49,7 +46,7 @@ public class LessonService {
         NewSeoDTO newSeoDTO = new NewSeoDTO(lessonDTO.title(), lessonDTO.description(), "", lessonDTO.mainLanguageId());
         Lesson lesson = new Lesson();
         if (lessonDTO.thumbnailId() != null) {
-            lesson.setThumbnail(mediaService.getMedia(lessonDTO.thumbnailId()));
+            lesson.setThumbnailImage((MediaImage) mediaService.getMedia(lessonDTO.thumbnailId()));
         }
         lesson.setTitle(lessonDTO.title());
         lesson.setSlug(lessonDTO.slug());
@@ -106,12 +103,12 @@ public class LessonService {
                 requiredField.add("content");
             }
             if (lessonDTO.thumbnailId() == null) {
-                requiredField.add("thumbnail");
+                requiredField.add("thumbnailImage");
             }
 
         }
         if (lessonDTO.thumbnailId() != null) {
-            lesson.setThumbnail(mediaService.getMedia(lessonDTO.thumbnailId()));
+            lesson.setThumbnailImage((MediaImage) mediaService.getMedia(lessonDTO.thumbnailId()));
         }
         if (lesson.getCreatedAt() == null) {
             lesson.setCreatedAt(LocalDateTime.now());
