@@ -21,13 +21,54 @@ import java.util.List;
 public class MediaImage extends Media {
     @JsonView(View.Public.class)
     private int width;
+
     @JsonView(View.Public.class)
     private int height;
-    @JsonIgnore
-    private String cloudinaryPublicId;
+
     @JsonView(View.Public.class)
-    private String mainColor;
+    private String avgColor;
+
     @JsonIgnore
-    @OneToMany(mappedBy = "thumbnail")
+    @OneToMany(mappedBy = "thumbnailImage")
     List<AbstractContent> contents = new ArrayList<>();
+
+    private MediaImage(Builder builder) {
+        super(builder);
+        this.width = builder.width;
+        this.height = builder.height;
+        this.avgColor = builder.mainColor;
+    }
+
+    public static class Builder extends Media.Builder<Builder> {
+        private int width;
+        private int height;
+        private String mainColor;
+
+
+        public Builder width(int width) {
+            this.width = width;
+            return this;
+        }
+
+        public Builder height(int height) {
+            this.height = height;
+            return this;
+        }
+
+        public Builder avgColor(String mainColor) {
+            this.mainColor = mainColor;
+            return this;
+        }
+
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
+
+        @Override
+        public MediaImage build() {
+            return new MediaImage(this);
+        }
+    }
 }
