@@ -1,6 +1,9 @@
 package mattia.consiglio.consitech.lms.services;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.entities.MediaImage;
@@ -29,7 +32,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
@@ -59,24 +65,22 @@ public class MediaService {
         assert originalFilename != null;
 
         // Extract file extension
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
         // Remove file extension
         String filename = originalFilename.substring(0, originalFilename.lastIndexOf("."));
 
         String alt = filename;
-        alt = alt.replaceAll("-", " ");
+        alt = alt.replaceAll("-", " ").replaceAll("\\s+", " ").trim();
         System.out.println("alt: " + alt);
 
         // Sanitize filename
         filename = filename.toLowerCase();
-        filename = Normalizer.normalize(filename, Normalizer.Form.NFKD);
-        filename = filename.replaceAll("[^a-zA-Z0-9]+", "-");
-        filename = filename.replaceAll("-{2,}", "-");
-        filename = filename.replaceAll("-$", "");
-        filename = filename.replaceAll("^-", "");
+        filename = Normalizer.normalize(filename, Normalizer.Form.NFKD)
+                .replaceAll("[^a-zA-Z0-9]+", "-")
+                .replaceAll("-{2,}", "-")
+                .replaceAll("-$", "")
+                .replaceAll("^-", "");
 
-        // Add back the file extension
-        String newFilename = filename + fileExtension;
 
         String hash = null;
         try {
@@ -85,16 +89,53 @@ public class MediaService {
             throw new RuntimeException(e);
         }
 
+        MediaDifference mediaDifference = checkFileDifference(hash, filename, fileExtension);
 
+        String newFilename = mediaDifference.getFilename();
+
+        if (mediaDifference.isDifferent()) saveFile(file, newFilename);
+
+        // Build media url
+        String url = getHostUrl() + "/media/" + newFilename;
+
+        MediaType mediaType = getMediaType(file);
+
+        switch (mediaType) {
+            case IMAGE:
+                MediaImage mediaImage = new MediaImage.Builder()
+                        .url(url)
+                        .type(mediaType)
+                        .alt(alt)
+                        .hash(hash)
+                        .uploadedAt(LocalDateTime.now())
+                        .filename(newFilename)
+                        .parentId(mediaDifference.getParentId())
+                        .build();
+                return mediaImageService.uploadImage(mediaImage, file);
+
+            case VIDEO:
+                MediaVideo mediaVideo = new MediaVideo.Builder().url(url)
+                        .type(mediaType)
+                        .alt(alt)
+                        .hash(hash)
+                        .uploadedAt(LocalDateTime.now())
+                        .filename(newFilename)
+                        .parentId(mediaDifference.getParentId())
+                        .build();
+                return mediaVideoService.uploadVideo(mediaVideo, file);
+            default:
+                throw new BadRequestException("Invalid media type");
+        }
+
+    }
+
+    public void saveFile(MultipartFile file, String newFilename) {
         //get application root path
         String rootPath = System.getProperty("user.dir");
-        logger.info("Root path: {}", rootPath);
 
         //save file on media folder
         File mediaFolder = new File(rootPath + File.separator + "media");
-        if (!mediaFolder.exists()) {
-            mediaFolder.mkdir();
-        }
+        if (!mediaFolder.exists()) mediaFolder.mkdir();
 
         File mediaFile = new File(mediaFolder, newFilename);
         try (InputStream inputStream = file.getInputStream();
@@ -114,38 +155,64 @@ public class MediaService {
             logger.error("File does not exist: {}", mediaFile.getAbsolutePath());
             throw new RuntimeException("File does not exist: " + mediaFile.getAbsolutePath());
         }
+    }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    private static class MediaDifference {
+        private boolean isDifferent;
+        private String filename;
+        private UUID parentId;
 
-        // Build media url
-        String url = getHostUrl() + "/media/" + newFilename;
-
-        MediaType mediaType = getMediaType(file);
-
-        switch (mediaType) {
-            case IMAGE:
-                MediaImage mediaImage = new MediaImage.Builder()
-                        .url(url)
-                        .type(mediaType)
-                        .alt(alt)
-                        .hash(hash)
-                        .uploadedAt(LocalDateTime.now())
-                        .filename(newFilename)
-                        .build();
-                return mediaImageService.uploadImage(mediaImage, file);
-
-            case VIDEO:
-                MediaVideo mediaVideo = new MediaVideo.Builder().url(url)
-                        .type(mediaType)
-                        .alt(alt)
-                        .hash(hash)
-                        .uploadedAt(LocalDateTime.now())
-                        .filename(newFilename)
-                        .build();
-                return mediaVideoService.uploadVideo(mediaVideo, file);
-            default:
-                throw new BadRequestException("Invalid media type");
+        public MediaDifference(boolean isDifferent, String filename) {
+            this.isDifferent = isDifferent;
+            this.filename = filename;
+            this.parentId = null;
         }
+    }
 
+    private MediaDifference checkFileDifference(String hash, String filename, String fileExtension) {
+        boolean isDifferent = true;
+        List<Media> mediaList = mediaRepository.findByHashOrderByFilenameDesc(hash);
+
+        if (mediaList.isEmpty()) return new MediaDifference(isDifferent, filename + "." + fileExtension);
+
+        Media parentMedia = mediaList.stream().filter(m -> m.getParentId() == null).findFirst().orElse(null);
+        if (parentMedia == null) return new MediaDifference(isDifferent, filename + "." + fileExtension);
+
+        isDifferent = false;
+
+        String regex = "-(\\d+)\\." + fileExtension + "$|\\." + fileExtension + "$";
+        Pattern pattern = Pattern.compile(regex);
+
+        final int[] index = {0};
+        final boolean[] found = {false};
+
+        mediaList.forEach((Media m) -> {
+            if (m.getFilename().replaceAll(regex, "").equals(filename) && m.getParentId() != null) {
+                if (index[0] == 0) {
+                    found[0] = true;
+                }
+                String mediaFilename = m.getFilename();
+                Matcher matcher = pattern.matcher(mediaFilename);
+                if (matcher.find()) {
+                    if (matcher.group(1) != null) {
+                        String indexString = matcher.group(1);
+                        int mediaIndex = Integer.parseInt(indexString);
+                        if (mediaIndex > index[0]) {
+                            index[0] = mediaIndex;
+                        }
+                    }
+                }
+            }
+        });
+
+        if (index[0] == 0 && !found[0])
+            return new MediaDifference(isDifferent, filename + "." + fileExtension, parentMedia.getId());
+        index[0]++;
+
+        return new MediaDifference(isDifferent, filename + "-" + index[0] + "." + fileExtension, parentMedia.getId());
     }
 
     private String getHostUrl() {
@@ -179,6 +246,26 @@ public class MediaService {
             throw new BadRequestException("Media id cannot be null");
         }
         return mediaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Media", id));
+    }
+
+    public Media getMediaByFilename(String filename) {
+        if (filename == null) {
+            throw new BadRequestException("Media filename cannot be null");
+        }
+        return mediaRepository.findByFilename(filename).orElseThrow(() -> new ResourceNotFoundException("Media", filename));
+    }
+
+    public File getFile(Media media) {
+        String rootPath = System.getProperty("user.dir");
+        String filename = media.getFilename();
+        System.out.println("media: " + media);
+        UUID parentId = media.getParentId();
+        if (parentId != null) {
+            Media parentMedia = this.getMedia(parentId);
+            filename = parentMedia.getFilename();
+        }
+
+        return new File(rootPath + File.separator + "media" + File.separator + filename);
     }
 
     public Media updateMedia(String id, UpdateMediaDTO mediaDTO) {

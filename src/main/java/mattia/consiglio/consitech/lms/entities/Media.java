@@ -2,15 +2,13 @@ package mattia.consiglio.consitech.lms.entities;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import mattia.consiglio.consitech.lms.utils.View;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@EqualsAndHashCode
 @Entity
 @Getter
 @Setter
