@@ -23,8 +23,6 @@ public class MediaImage extends Media {
     private int width;
     @JsonView(View.Public.class)
     private int height;
-    @JsonIgnore
-    private String cloudinaryPublicId;
     @JsonView(View.Public.class)
     private String mainColor;
     @JsonIgnore
