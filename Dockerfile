@@ -17,7 +17,10 @@ EXPOSE 8080
 # Copia l'applicazione compilata dalla fase di compilazione
 COPY --from=build /usr/src/app/target/*.jar app.jar
 
-
+# Installa ffmpeg
+RUN apk update
+RUN apk upgrade
+RUN apk add --no-cache ffmpeg
 
 # Comando per eseguire l'applicazione
 ENTRYPOINT ["java","-jar","/app.jar"]

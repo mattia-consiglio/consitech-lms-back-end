@@ -15,6 +15,8 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
 
     List<Media> findByHashOrderByFilenameDesc(String hash);
 
+    List<Media> findByParentId(UUID parentId);
+
     List<Media> findByHashAndParentIdNotNull(String hash);
 
     Optional<Media> findByFilename(String filename);

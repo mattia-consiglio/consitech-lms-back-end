@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.entities.MediaImage;
 import mattia.consiglio.consitech.lms.entities.MediaType;
@@ -14,8 +13,6 @@ import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.UpdateMediaDTO;
 import mattia.consiglio.consitech.lms.repositories.AbstractContentRepository;
 import mattia.consiglio.consitech.lms.repositories.MediaRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,10 +36,8 @@ import java.util.regex.Pattern;
 
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
-@Slf4j
 @Service
 public class MediaService {
-    private static final Logger logger = LoggerFactory.getLogger(MediaService.class);
 
     @Autowired
     private MediaRepository mediaRepository;
@@ -71,7 +66,6 @@ public class MediaService {
 
         String alt = filename;
         alt = alt.replaceAll("-", " ").replaceAll("\\s+", " ").trim();
-        System.out.println("alt: " + alt);
 
         // Sanitize filename
         filename = filename.toLowerCase();
@@ -146,13 +140,12 @@ public class MediaService {
                 outputStream.write(buffer, 0, bytesRead);
             }
         } catch (IOException e) {
-            logger.error("Error transferring file to media folder", e);
+
             throw new RuntimeException(e);
         }
 
         // Check if the file exists
         if (!mediaFile.exists()) {
-            logger.error("File does not exist: {}", mediaFile.getAbsolutePath());
             throw new RuntimeException("File does not exist: " + mediaFile.getAbsolutePath());
         }
     }
@@ -258,7 +251,6 @@ public class MediaService {
     public File getFile(Media media) {
         String rootPath = System.getProperty("user.dir");
         String filename = media.getFilename();
-        System.out.println("media: " + media);
         UUID parentId = media.getParentId();
         if (parentId != null) {
             Media parentMedia = this.getMedia(parentId);
@@ -287,17 +279,24 @@ public class MediaService {
     public void deleteMedia(UUID id) {
         Media media = this.getMedia(id);
         if (media.getType() == MediaType.IMAGE) {
-            MediaImage mediaImage = (MediaImage) media;
 
-            mediaImage.getContents().forEach(abstractContent -> {
+            ((MediaImage) media).getContents().forEach(abstractContent -> {
                 abstractContent.setThumbnailImage(null);
                 abstractContentRepository.save(abstractContent);
             });
-            try {
-//                cloudinary.api().deleteResources(Collections.singletonList(mediaImage.getCloudinaryPublicId()),
-//                        ObjectUtils.asMap("type", "upload", "resource_type", "image"));
-            } catch (Exception exception) {
-                throw new BadRequestException("Error deleting file form Cloudinary. " + exception.getMessage());
+
+            if (media.getParentId() != null) {
+                List<Media> mediaList = mediaRepository.findByParentId(media.getParentId());
+                mediaList.forEach((Media m) -> {
+                    if (m.getType() == MediaType.IMAGE) {
+                        ((MediaImage) m).getContents().forEach(abstractContent -> {
+                            abstractContent.setThumbnailImage(null);
+                            abstractContentRepository.save(abstractContent);
+                        });
+                        mediaRepository.delete(m);
+                    }
+
+                });
             }
         }
         mediaRepository.delete(media);
