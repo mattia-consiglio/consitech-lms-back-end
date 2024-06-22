@@ -36,3 +36,5 @@ env.properties
 
 cositech_lms.log
 cositech_lms.log.*.gz
+
+media/
