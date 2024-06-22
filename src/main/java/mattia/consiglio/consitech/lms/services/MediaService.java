@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -78,7 +77,7 @@ public class MediaService {
         MediaImage media = new MediaImage();
         media.setUrl(url);
         media.setUploadedAt(LocalDateTime.now());
-        media.setCloudinaryPublicId(response.get("public_id").toString());
+//        media.setCloudinaryPublicId(response.get("public_id").toString());
         media.setType(MediaType.valueOf(response.get("resource_type").toString().toUpperCase()));
         media.setWidth(Integer.parseInt(response.get("width").toString()));
         media.setHeight(Integer.parseInt(response.get("height").toString()));
@@ -118,22 +117,23 @@ public class MediaService {
     }
 
     public void deleteMedia(UUID id) {
-        Media media = this.getMedia(id);
-        if (media.getType() == MediaType.IMAGE) {
-            MediaImage mediaImage = (MediaImage) media;
-
-            mediaImage.getContents().forEach(abstractContent -> {
-                abstractContent.setThumbnail(null);
-                abstractContentRepository.save(abstractContent);
-            });
-            try {
-                cloudinary.api().deleteResources(Collections.singletonList(mediaImage.getCloudinaryPublicId()),
-                        ObjectUtils.asMap("type", "upload", "resource_type", "image"));
-            } catch (Exception exception) {
-                throw new BadRequestException("Error deleting file form Cloudinary. " + exception.getMessage());
-            }
-        }
-        mediaRepository.delete(media);
+        throw new BadRequestException("Momentary media cannot be deleted");
+//        Media media = this.getMedia(id);
+//        if (media.getType() == MediaType.IMAGE) {
+//            MediaImage mediaImage = (MediaImage) media;
+//
+//            mediaImage.getContents().forEach(abstractContent -> {
+//                abstractContent.setThumbnail(null);
+//                abstractContentRepository.save(abstractContent);
+//            });
+//            try {
+//                cloudinary.api().deleteResources(Collections.singletonList(mediaImage.getCloudinaryPublicId()),
+//                        ObjectUtils.asMap("type", "upload", "resource_type", "image"));
+//            } catch (Exception exception) {
+//                throw new BadRequestException("Error deleting file form Cloudinary. " + exception.getMessage());
+//            }
+//        }
+//        mediaRepository.delete(media);
     }
 
     public Page<Media> getAllMedia(int page, int size, String sort, String direction) {
