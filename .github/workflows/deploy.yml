@@ -30,7 +30,7 @@ jobs:
 
     - name: Run new container on a different port for testing
       run: |
-        docker run -d --name consitech-lm-backend-test -p 8081:8080 \
+        docker run -d --name consitech-lms-backend-container-test -p 8081:8080 \
           -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
           -e DB_URL=${{ secrets.DB_URL }} \
           -e DB_USER=${{ secrets.DB_USER }} \
@@ -46,7 +46,7 @@ jobs:
           -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
           -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
-          consitech-lm-backend
+          consitech-lms-backend
 
     - name: Health check
       run: |
@@ -58,18 +58,18 @@ jobs:
         done
         if [ $RETRIES -eq 0 ]; then
           echo "New container failed to start"
-          docker logs consitech-lm-backend-test
-          docker rm -f consitech-lm-backend-test
+          docker logs consitech-lms-backend-container-test
+          docker rm -f consitech-lms-backend-container-test
           exit 1
         fi
 
     - name: Stop and remove old container
-      run: docker rm -f consitech-lm-backend || true
+      run: docker rm -f consitech-lm-container-backend || true
 
     - name: Start new container on the original port
       run: |
-        docker rm -f consitech-lm-backend-test
-        docker run -d --name consitech-lm-backend -p 8080:8080 \
+        docker rm -f consitech-lms-backend-container-test
+        docker run -d --name consitech-lms-container-backend -p 8080:8080 \
           -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
           -e DB_URL=${{ secrets.DB_URL }} \
           -e DB_USER=${{ secrets.DB_USER }} \
@@ -85,4 +85,4 @@ jobs:
           -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
           -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
-          consitech-lm-backend
+          consitech-lms-backend
