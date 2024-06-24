@@ -23,6 +23,8 @@ jobs:
       run: |
         docker run -d --name consitech-lms-backend-container-test -p 8081:8080 \
           -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
+          -e DB_USER=${{ secrets.DB_USER }} \
+          -e DB_PASS=${{ secrets.DB_PASS }} \
           consitech-lms-backend
 
     - name: Health check
