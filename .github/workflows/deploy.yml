@@ -26,6 +26,16 @@ jobs:
           -e DB_USER=${{ secrets.DB_USER }} \
           -e DB_PASS=${{ secrets.DB_PASS }} \
           -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+          -e SMTP_HOST=${{ secrets.SMTP_HOST }} \
+          -e SMTP_PORT=${{ secrets.SMTP_PORT }} \
+          -e SMTP_USERNAME=${{ secrets.SMTP_USERNAME }} \
+          -e SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }} \
+          -e ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} \
+          -e ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }} \
+          -e ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }} \
+          -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
+          -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
+          -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
           consitech-lms-backend
 
     - name: Health check
