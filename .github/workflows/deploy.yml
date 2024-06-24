@@ -25,6 +25,7 @@ jobs:
           -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
           -e DB_USER=${{ secrets.DB_USER }} \
           -e DB_PASS=${{ secrets.DB_PASS }} \
+          -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
           consitech-lms-backend
 
     - name: Health check
