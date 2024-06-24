@@ -16,15 +16,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    # - name: Set up JDK 21
-    #   uses: actions/setup-java@v2
-    #   with:
-    #     distribution: 'adopt'
-    #     java-version: '21'
-
-    # - name: Build with Maven
-    #   run: mvn clean package
-
     - name: Build Docker image
       run: docker build -t consitech-lm-backend .
 
@@ -46,7 +37,7 @@ jobs:
           -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
           -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
-          consitech-lms-backend
+          consitech-lm-backend
 
     - name: Health check
       run: |
@@ -85,4 +76,4 @@ jobs:
           -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
           -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
-          consitech-lms-backend
+          consitech-lm-backend
