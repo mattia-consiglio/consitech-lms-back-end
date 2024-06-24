@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build Docker image
-      run: docker build -t consitech-lm-backend .
+      run: docker build -t consitech-lms-backend .
 
     - name: Run new container on a different port for testing
       run: |
@@ -37,7 +37,7 @@ jobs:
           -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
           -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
-          consitech-lm-backend
+          consitech-lms-backend
 
     - name: Health check
       run: |
@@ -55,7 +55,7 @@ jobs:
         fi
 
     - name: Stop and remove old container
-      run: docker rm -f consitech-lm-container-backend || true
+      run: docker rm -f consitech-lms-container-backend || true
 
     - name: Start new container on the original port
       run: |
@@ -76,4 +76,4 @@ jobs:
           -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
           -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
-          consitech-lm-backend
+          consitech-lms-backend
