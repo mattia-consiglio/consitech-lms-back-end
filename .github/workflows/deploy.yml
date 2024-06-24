@@ -40,7 +40,8 @@ jobs:
 
     - name: Health check
       run: |
-        RETRIES=5
+        docker logs consitech-lms-backend-container-test
+        RETRIES=3
         until curl --silent --fail http://localhost:8081 || [ $RETRIES -eq 0 ]; do
           echo "Waiting for container..."
           sleep 10
