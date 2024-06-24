@@ -25,6 +25,7 @@ jobs:
           -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
           -e DB_USER=${{ secrets.DB_USER }} \
           -e DB_PASS=${{ secrets.DB_PASS }} \
+          -e DB_URL=${{ secrets.DB_URL }} \
           -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
           -e SMTP_HOST=${{ secrets.SMTP_HOST }} \
           -e SMTP_PORT=${{ secrets.SMTP_PORT }} \
