@@ -30,7 +30,7 @@ jobs:
 
     - name: Run new container on a different port for testing
       run: |
-        docker run -d --name consitech-lm-backend-test -p 8081:8080 consitech-lm-backend \
+        docker run -d --name consitech-lm-backend-test -p 8081:8080 \
           -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
           -e DB_URL=${{ secrets.DB_URL }} \
           -e DB_USER=${{ secrets.DB_USER }} \
@@ -46,7 +46,7 @@ jobs:
           -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
           -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
-          
+          consitech-lm-backend
 
     - name: Health check
       run: |
@@ -69,7 +69,7 @@ jobs:
     - name: Start new container on the original port
       run: |
         docker rm -f consitech-lm-backend-test
-        docker run -d --name consitech-lm-backend -p 8080:8080 consitech-lm-backend \
+        docker run -d --name consitech-lm-backend -p 8080:8080 \
           -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
           -e DB_URL=${{ secrets.DB_URL }} \
           -e DB_USER=${{ secrets.DB_USER }} \
@@ -85,3 +85,4 @@ jobs:
           -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
           -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
+          consitech-lm-backend
