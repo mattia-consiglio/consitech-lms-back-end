@@ -71,7 +71,7 @@ jobs:
       run: |
         docker rm -f consitech-lms-backend-container-test
         docker run -d --name consitech-lms-container-backend \
-          -p 80:8080 \
+          -p 8080:8080 \
           --network mynetwork \
           -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
           -e DB_URL=${{ secrets.DB_URL }} \
