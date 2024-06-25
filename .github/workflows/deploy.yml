@@ -19,6 +19,13 @@ jobs:
     - name: Build Docker image
       run: docker build -t consitech-lms-backend .
 
+    - name: Remove existing test container if running
+      run: |
+        if [ $(docker ps -q -f name=consitech-lms-backend-container-test) ]; then
+          echo "Stopping and removing existing test container"
+          docker rm -f consitech-lms-backend-container-test
+        fi
+
     - name: Run new container on a different port for testing
       run: |
         docker run -d --name consitech-lms-backend-container-test \
