@@ -26,6 +26,7 @@ public class MediaStreamService {
         File file = mediaService.getFile(media);
 
         InputStream inputStream = null;
+
         try {
             inputStream = new BufferedInputStream(new FileInputStream(file));
         } catch (FileNotFoundException e) {

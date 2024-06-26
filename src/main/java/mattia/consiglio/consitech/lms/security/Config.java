@@ -1,5 +1,6 @@
 package mattia.consiglio.consitech.lms.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -14,18 +15,24 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class Config {
+    @Autowired
+    private HostsFilter hostFilter;
 
+    @Autowired
+    private List<String> allowedHosts;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -35,6 +42,7 @@ public class Config {
 
         httpSecurity.cors(Customizer.withDefaults());
         httpSecurity.authorizeRequests(http -> http.requestMatchers("/**").permitAll());
+        httpSecurity.addFilterBefore(hostFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
 
@@ -47,7 +55,7 @@ public class Config {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://lms.consitech.it", "https://consitech-lms-front-end.vercel.app"));
+        config.setAllowedOrigins(allowedHosts);
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
 

@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Configuration
@@ -21,5 +23,10 @@ public class ServerConfig {
         configuration.put("api_key", key);
         configuration.put("api_secret", secret);
         return new Cloudinary(configuration);
+    }
+
+    @Bean(name = "allowedHosts")
+    public List<String> allowedHosts() {
+        return Arrays.asList("http://localhost:3000", "https://lms.consitech.it", "https://consitech-lms-front-end.vercel.app");
     }
 }
