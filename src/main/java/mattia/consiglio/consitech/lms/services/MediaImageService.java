@@ -18,9 +18,8 @@ public class MediaImageService {
     private MediaImageRepository mediaImageRepository;
 
     public MediaImage uploadImage(MediaImage media, MultipartFile file) {
-        InputStream inputStream = null;
         try {
-            inputStream = file.getInputStream();
+            InputStream inputStream = file.getInputStream();
             BufferedImage image = ImageIO.read(inputStream);
             Color averageColor = getAverageColor(image);
             MediaImage mediaImage = new MediaImage.Builder()
@@ -33,8 +32,6 @@ public class MediaImageService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-
     }
 
 

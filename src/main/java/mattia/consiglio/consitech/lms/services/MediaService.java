@@ -54,6 +54,9 @@ public class MediaService {
     @Autowired
     private HttpServletRequest request;
 
+    @Autowired
+    private MediaServiceUtils mediaServiceUtils;
+
     public Media uploadMedia(MultipartFile file) {
 
         String originalFilename = file.getOriginalFilename();
@@ -230,15 +233,11 @@ public class MediaService {
     }
 
     public Media getMedia(String id) {
-        UUID uuid = checkUUID(id, "media id");
-        return this.getMedia(uuid);
+        return mediaServiceUtils.getMedia(id);
     }
 
     public Media getMedia(UUID id) {
-        if (id == null) {
-            throw new BadRequestException("Media id cannot be null");
-        }
-        return mediaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Media", id));
+        return mediaServiceUtils.getMedia(id);
     }
 
     public Media getMediaByFilename(String filename) {
@@ -248,17 +247,6 @@ public class MediaService {
         return mediaRepository.findByFilename(filename).orElseThrow(() -> new ResourceNotFoundException("Media", filename));
     }
 
-    public File getFile(Media media) {
-        String rootPath = System.getProperty("user.dir");
-        String filename = media.getFilename();
-        UUID parentId = media.getParentId();
-        if (parentId != null) {
-            Media parentMedia = this.getMedia(parentId);
-            filename = parentMedia.getFilename();
-        }
-
-        return new File(rootPath + File.separator + "media" + File.separator + filename);
-    }
 
     public Media updateMedia(String id, UpdateMediaDTO mediaDTO) {
         UUID uuid = checkUUID(id, "media id");

@@ -19,9 +19,16 @@ public class HostsFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String host = request.getHeader("origin");
-        System.out.println("Host: " + host);
+        String referer = request.getHeader("referer");
+        if (host != null) {
+            host = host.toLowerCase();
+        }
+        if (referer != null) {
+            referer = referer.toLowerCase();
+            referer = referer.replaceAll("/$", "");
+        }
 
-        if (allowedHosts.contains(host)) {
+        if (allowedHosts.contains(host) || allowedHosts.contains(referer)) {
             filterChain.doFilter(request, response);
         } else {
             response.getWriter().write("Host not allowed");

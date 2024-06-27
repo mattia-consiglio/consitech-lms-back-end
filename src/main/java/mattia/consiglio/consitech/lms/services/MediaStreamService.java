@@ -17,13 +17,16 @@ public class MediaStreamService {
     @Autowired
     private MediaService mediaService;
 
+    @Autowired
+    private MediaServiceUtils mediaServiceUtils;
+
     public ResponseEntity<InputStreamResource> getMediaStream(String filename) {
         Media media = mediaService.getMediaByFilename(filename);
         if (media == null) {
             return null;
         }
 
-        File file = mediaService.getFile(media);
+        File file = mediaServiceUtils.getFile(media);
 
         InputStream inputStream = null;
 

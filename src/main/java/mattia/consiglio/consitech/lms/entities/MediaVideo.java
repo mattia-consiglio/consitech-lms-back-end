@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "media_videos")
 public class MediaVideo extends Media {
-    private int duration;
+    private double duration;
     private List<VideoResolutions> resolutions;
     @ManyToOne
     @JoinColumn(name = "thumbnail_id")
@@ -28,9 +28,9 @@ public class MediaVideo extends Media {
     }
 
     public static class Builder extends Media.Builder<Builder> {
-        private int duration;
+        private double duration;
 
-        public Builder setDuration(int duration) {
+        public Builder duration(double duration) {
             this.duration = duration;
             return this;
         }
