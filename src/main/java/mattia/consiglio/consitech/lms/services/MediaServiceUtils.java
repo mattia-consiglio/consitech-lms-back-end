@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
@@ -38,7 +40,14 @@ public class MediaServiceUtils {
             filename = parentMedia.getFilename();
         }
 
+
         return new File(rootPath + File.separator + "media" + File.separator + filename);
+    }
+
+    public boolean isValidFileExtension(String fileExtension) {
+        // Add valid file extensions here
+        List<String> validExtensions = Arrays.asList("jpg", "jpeg", "png", "gif", "mp4", "avi");
+        return validExtensions.contains(fileExtension.toLowerCase());
     }
 
 }

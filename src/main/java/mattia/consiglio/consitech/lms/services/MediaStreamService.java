@@ -25,6 +25,16 @@ public class MediaStreamService {
         if (media == null) {
             return null;
         }
+        
+        if (filename == null) {
+            throw new BadRequestException("Media filename cannot be null");
+        }
+        if (!filename.contains(".")) {
+            throw new BadRequestException("Media filename must contain an extension");
+        }
+        if (filename.contains("..")) {
+            throw new BadRequestException("Media filename cannot contain '..'");
+        }
 
         File file = mediaServiceUtils.getFile(media);
 

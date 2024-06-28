@@ -60,20 +60,28 @@ public class MediaService {
     public Media uploadMedia(MultipartFile file) {
 
         String originalFilename = file.getOriginalFilename();
-        assert originalFilename != null;
+        if (originalFilename == null || originalFilename.isEmpty()) {
+            throw new BadRequestException("Invalid file name");
+        }
+
+        // Sanitize the filename
+        String sanitizedFilename = originalFilename.replaceAll("[^a-zA-Z0-9\\._]+", "-");
 
         // Extract file extension
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
+        String fileExtension = sanitizedFilename.substring(sanitizedFilename.lastIndexOf(".") + 1);
         // Remove file extension
-        String filename = originalFilename.substring(0, originalFilename.lastIndexOf("."));
+        String filename = sanitizedFilename.substring(0, sanitizedFilename.lastIndexOf("."));
 
-        String alt = filename;
-        alt = alt.replaceAll("-", " ").replaceAll("\\s+", " ").trim();
+        // Validate the file extension
+        if (!mediaServiceUtils.isValidFileExtension(fileExtension)) {
+            throw new BadRequestException("Invalid file extension");
+        }
+
+        String alt = filename.replaceAll("-", " ").replaceAll("\\s+", " ").trim();
 
         // Sanitize filename
         filename = filename.toLowerCase();
         filename = Normalizer.normalize(filename, Normalizer.Form.NFKD)
-                .replaceAll("[^a-zA-Z0-9]+", "-")
                 .replaceAll("-{2,}", "-")
                 .replaceAll("-$", "")
                 .replaceAll("^-", "");
@@ -89,6 +97,7 @@ public class MediaService {
         MediaDifference mediaDifference = checkFileDifference(hash, filename, fileExtension);
 
         String newFilename = mediaDifference.getFilename();
+
 
         if (mediaDifference.isDifferent()) saveFile(file, newFilename);
 
@@ -272,22 +281,32 @@ public class MediaService {
                 abstractContent.setThumbnailImage(null);
                 abstractContentRepository.save(abstractContent);
             });
+        }
 
-            if (media.getParentId() != null) {
-                List<Media> mediaList = mediaRepository.findByParentId(media.getParentId());
-                mediaList.forEach((Media m) -> {
-                    if (m.getType() == MediaType.IMAGE) {
-                        ((MediaImage) m).getContents().forEach(abstractContent -> {
-                            abstractContent.setThumbnailImage(null);
-                            abstractContentRepository.save(abstractContent);
-                        });
-                        mediaRepository.delete(m);
-                    }
+        if (media.getParentId() == null) {
+            List<Media> mediaList = mediaRepository.findByParentId(media.getId());
+            mediaList.forEach((Media m) -> {
+                if (m.getType() == MediaType.IMAGE) {
+                    ((MediaImage) m).getContents().forEach(abstractContent -> {
+                        abstractContent.setThumbnailImage(null);
+                        abstractContentRepository.save(abstractContent);
+                    });
+                }
+                mediaRepository.delete(m);
+            });
+            deleteFile(mediaServiceUtils.getFile(media));
+        }
 
-                });
+        mediaRepository.delete(media);
+    }
+
+    private void deleteFile(File file) {
+        if (file.exists()) {
+            boolean delete = file.delete();
+            for (int i = 0; i < 4 || delete; i++) {
+                delete = file.delete();
             }
         }
-        mediaRepository.delete(media);
     }
 
     public Page<Media> getAllMedia(int page, int size, String sort, String direction) {
@@ -338,7 +357,7 @@ public class MediaService {
     }
 
     /**
-     * Calculates the MD5 hash of a file.
+     * Calculates the SHA-256 hash of a file.
      *
      * @param file The file to calculate the hash of.
      * @return The calculated hash.
@@ -346,7 +365,7 @@ public class MediaService {
      * @throws NoSuchAlgorithmException If the MessageDigest algorithm is not found.
      */
     public static String calculateHash(MultipartFile file) throws IOException, NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("MD5");
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
         InputStream inputStream = file.getInputStream();
         byte[] buffer = new byte[8192];
         int bytesRead;

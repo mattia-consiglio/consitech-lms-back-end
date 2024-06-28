@@ -1,6 +1,7 @@
 package mattia.consiglio.consitech.lms.services;
 
 import mattia.consiglio.consitech.lms.entities.MediaImage;
+import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.repositories.MediaImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -18,8 +20,9 @@ public class MediaImageService {
     private MediaImageRepository mediaImageRepository;
 
     public MediaImage uploadImage(MediaImage media, MultipartFile file) {
-        try {
-            InputStream inputStream = file.getInputStream();
+
+        try (InputStream inputStream = new FileInputStream(media.getPath())) {
+//            File imageFile = new File(media.getPath());
             BufferedImage image = ImageIO.read(inputStream);
             Color averageColor = getAverageColor(image);
             MediaImage mediaImage = new MediaImage.Builder()
@@ -28,6 +31,7 @@ public class MediaImageService {
                     .width(image.getWidth())
                     .height(image.getHeight())
                     .build();
+            inputStream.close();
             return mediaImageRepository.save(mediaImage);
         } catch (IOException e) {
             throw new RuntimeException(e);

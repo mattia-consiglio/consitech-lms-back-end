@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import mattia.consiglio.consitech.lms.utils.View;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -118,6 +119,11 @@ public abstract class Media {
         protected abstract T self();
 
         public abstract Media build();
+    }
+
+    public String getPath() {
+        String rootPath = System.getProperty("user.dir");
+        return rootPath + File.separator + "media" + File.separator + filename;
     }
 
 }

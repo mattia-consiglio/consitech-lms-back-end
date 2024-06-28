@@ -12,10 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.UUID;
-
 import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL;
-import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
 @RestController
 @RequestMapping(BASE_URL + "/media")
@@ -39,8 +36,7 @@ public class MediasController {
     @GetMapping("{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public Media getMediaById(@PathVariable("id") String id) {
-        UUID uuid = checkUUID(id, "id");
-        return mediaService.getMedia(uuid);
+        return mediaService.getMedia(id);
     }
 
     @PutMapping("{id}")
