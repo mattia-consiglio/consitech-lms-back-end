@@ -4,6 +4,7 @@ import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.payloads.UpdateMediaDTO;
 import mattia.consiglio.consitech.lms.services.MediaService;
+import mattia.consiglio.consitech.lms.services.MediaVideoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,6 +13,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL;
 
 @RestController
@@ -19,6 +22,9 @@ import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL
 public class MediasController {
     @Autowired
     private MediaService mediaService;
+
+    @Autowired
+    private MediaVideoService mediaVideoService;
 
     @PostMapping("/upload")
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -37,6 +43,18 @@ public class MediasController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public Media getMediaById(@PathVariable("id") String id) {
         return mediaService.getMedia(id);
+    }
+
+    @GetMapping("/{id}/transcode-progress")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Map<String, Integer> getTranscodeProgress(@PathVariable("id") String id) {
+        return mediaVideoService.getTranscodeProgress(id);
+    }
+
+    @PostMapping("/{id}/transcode")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public void transcodeMedia(@PathVariable("id") String id) {
+        mediaService.transcodeVideo(id);
     }
 
     @PutMapping("{id}")

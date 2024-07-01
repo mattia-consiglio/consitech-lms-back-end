@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.*;
 import mattia.consiglio.consitech.lms.utils.View;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -46,6 +48,10 @@ public abstract class Media {
 
     @JsonView(View.Admin.class)
     private String filename;
+
+    @Autowired
+    @Qualifier("mediaPath")
+    private String mediaPath;
 
     // Costruttore privato per il Builder
     protected Media(Builder<?> builder) {
@@ -122,8 +128,7 @@ public abstract class Media {
     }
 
     public String getPath() {
-        String rootPath = System.getProperty("user.dir");
-        return rootPath + File.separator + "media" + File.separator + filename;
+        return mediaPath + File.separator + filename;
     }
 
 }

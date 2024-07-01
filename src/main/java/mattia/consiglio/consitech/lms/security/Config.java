@@ -1,6 +1,7 @@
 package mattia.consiglio.consitech.lms.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -27,11 +28,16 @@ import java.util.UUID;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class Config {
-    @Autowired
-    private HostsFilter hostFilter;
+
+    private final HostsFilter hostFilter;
+    private final List<String> allowedHosts;
 
     @Autowired
-    private List<String> allowedHosts;
+    public Config(HostsFilter hostFilter, @Qualifier("allowedHosts") List<String> allowedHosts) {
+        this.hostFilter = hostFilter;
+        this.allowedHosts = allowedHosts;
+
+    }
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {

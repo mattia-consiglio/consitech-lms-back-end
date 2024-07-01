@@ -57,7 +57,13 @@ public class MediaService {
     @Autowired
     private MediaServiceUtils mediaServiceUtils;
 
+    @Autowired
+    private String mediaPath;
+
     public Media uploadMedia(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new BadRequestException("Invalid file content");
+        }
 
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || originalFilename.isEmpty()) {
@@ -136,14 +142,10 @@ public class MediaService {
     }
 
     public void saveFile(MultipartFile file, String newFilename) {
-        //get application root path
-        String rootPath = System.getProperty("user.dir");
 
-        //save file on media folder
-        File mediaFolder = new File(rootPath + File.separator + "media");
-        if (!mediaFolder.exists()) mediaFolder.mkdir();
+        mediaServiceUtils.ensureDirectoryExists(mediaPath);
 
-        File mediaFile = new File(mediaFolder, newFilename);
+        File mediaFile = new File(mediaPath, newFilename);
         try (InputStream inputStream = file.getInputStream();
              FileOutputStream outputStream = new FileOutputStream(mediaFile)) {
             byte[] buffer = new byte[8192];
@@ -276,7 +278,6 @@ public class MediaService {
     public void deleteMedia(UUID id) {
         Media media = this.getMedia(id);
         if (media.getType() == MediaType.IMAGE) {
-
             ((MediaImage) media).getContents().forEach(abstractContent -> {
                 abstractContent.setThumbnailImage(null);
                 abstractContentRepository.save(abstractContent);
@@ -397,5 +398,12 @@ public class MediaService {
             }
         }
         return null;
+    }
+
+    public void transcodeVideo(String id) {
+        Media media = this.getMedia(id);
+        if (media.getType() == MediaType.VIDEO) {
+            mediaVideoService.startTranscode((MediaVideo) media);
+        }
     }
 }

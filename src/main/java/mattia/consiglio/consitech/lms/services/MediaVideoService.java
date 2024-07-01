@@ -1,12 +1,17 @@
 package mattia.consiglio.consitech.lms.services;
 
 import mattia.consiglio.consitech.lms.entities.MediaVideo;
+import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.repositories.MediaVideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.util.Map;
+import java.util.UUID;
+
+import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
 @Service
 public class MediaVideoService {
@@ -16,13 +21,20 @@ public class MediaVideoService {
     @Autowired
     private MediaServiceUtils mediaServiceUtils;
 
+    @Autowired
+    private VideoTranscodingService videoTranscodingService;
+
 
     public MediaVideo uploadVideo(MediaVideo media, MultipartFile file) {
         try {
             InputStream inputStream = file.getInputStream();
 
             File fileVideo = mediaServiceUtils.getFile(media);
+
             double videoLength = getVideoDuration(fileVideo.getAbsolutePath());
+
+            // Transcodifica il video
+            this.startTranscode(media);
 
             MediaVideo mediaImage = new MediaVideo.Builder()
                     .media(media)
@@ -63,5 +75,28 @@ public class MediaVideoService {
         long minutes = Long.parseLong(parts[1]);
         double seconds = Double.parseDouble(parts[2]);
         return (hours * 3600) + (minutes * 60) + (long) seconds;
+    }
+
+    public Map<String, Integer> getTranscodeProgress(String id) {
+        UUID uuid = checkUUID(id, "media id");
+        Map<String, Integer> progressMap = videoTranscodingService.getProgressMap();
+
+        if (progressMap.containsKey(uuid.toString())) {
+            return progressMap;
+        } else {
+            throw new ResourceNotFoundException("Media not found");
+        }
+
+    }
+
+    public void startTranscode(MediaVideo media) {
+        new Thread(() -> {
+            try {
+                videoTranscodingService.transcodeVideo(media);
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
+            }
+        }).start();
     }
 }

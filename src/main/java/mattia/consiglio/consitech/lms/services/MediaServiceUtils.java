@@ -19,6 +19,13 @@ public class MediaServiceUtils {
     @Autowired
     private MediaRepository mediaRepository;
 
+    public void ensureDirectoryExists(String directoryPath) {
+        File directory = new File(directoryPath);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+    }
+
     public Media getMedia(String id) {
         UUID uuid = checkUUID(id, "media id");
         return this.getMedia(uuid);

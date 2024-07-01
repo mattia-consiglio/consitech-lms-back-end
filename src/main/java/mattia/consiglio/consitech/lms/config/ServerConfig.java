@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -25,8 +26,19 @@ public class ServerConfig {
         return new Cloudinary(configuration);
     }
 
-    @Bean(name = "allowedHosts")
+    @Bean("allowedHosts")
     public List<String> allowedHosts() {
         return Arrays.asList("http://localhost:3000", "https://lms.consitech.it", "https://consitech-lms-front-end.vercel.app");
+    }
+
+    @Bean("mediaPath")
+    public String mediaPath() {
+        String rootPath = System.getProperty("user.dir");
+        return rootPath + File.separator + "media";
+    }
+
+    @Bean("transcodePath")
+    public String transcodePath() {
+        return mediaPath() + File.separator + "transcode";
     }
 }
