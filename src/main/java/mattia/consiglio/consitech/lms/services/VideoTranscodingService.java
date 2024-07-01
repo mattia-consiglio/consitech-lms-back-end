@@ -43,48 +43,48 @@ public class VideoTranscodingService {
             String crf = qualitySettings[i];
             String outputFilePath = new File(transcodePath, filename.replace(".mp4", "_" + resolution + ".mp4")).getAbsolutePath();
 
-            String command = "ffmpeg -i " + sourceFile.getAbsolutePath() + " -vf scale=" + resolution.replace("x", ":") + " -c:v libx264 -preset fast -crf " + crf + " -c:a aac -nostats -progress - " + outputFilePath;
-            System.out.println(command);
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "ffmpeg",
+                    "-i", sourceFile.getAbsolutePath(),
+                    "-vf", "scale=" + resolution.replace("x", ":"), // Set the resolution
+                    "-c:v", "libx264",
+                    "-preset", "fast",
+                    "-crf", crf, // Set the CRF value
+                    "-c:a", "aac",
+                    "-nostats", // Suppress regular output
+                    "-progress", "-", // Output progress information to stdout
+                    "-hide_banner", // Suppress banner
+                    outputFilePath
+            );
+            processBuilder.redirectErrorStream(true);
+            try {
+                Process process = processBuilder.start();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
-//            ProcessBuilder processBuilder = new ProcessBuilder(
-//                    "ffmpeg",
-//                    "-i", sourceFile.getAbsolutePath(),
-//                    "-vf", "scale=" + resolution.replace("x", ":"), // Set the resolution
-//                    "-c:v", "libx264",
-//                    "-preset", "fast",
-//                    "-crf", crf, // Set the CRF value
-//                    "-c:a", "aac",
-//                    "-nostats", // Suppress regular output
-//                    "-progress", "-", // Output progress information to stdout
-//                    outputFilePath
-//            );
-
-
-            Process process = Runtime.getRuntime().exec(command);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println("FFmpeg output: " + line);
-                if (line.startsWith("frame=")) {
-                    String[] progressInfo = line.split("=");
-                    int progress = Integer.parseInt(progressInfo[1].trim());
-                    progressMap.put(id, progress);
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("frame=")) {
+                        String[] progressInfo = line.split("=")[1].trim().split(" ");
+                        int progress = Integer.parseInt(progressInfo[0].trim());
+                        progressMap.put(id, progress);
+                    }
                 }
-            }
 
-            // Log error output
-            String errorLine;
-            while ((errorLine = errorReader.readLine()) != null) {
-                System.err.println("FFmpeg error: " + errorLine);
-            }
+                // Log error output
+                String errorLine;
+                while ((errorLine = errorReader.readLine()) != null) {
+                    System.err.println("FFmpeg error: " + errorLine);
+                }
 
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new RuntimeException("Error during video transcoding, exit code: " + exitCode);
+                int exitCode = process.waitFor();
+                if (exitCode != 0) {
+                    throw new RuntimeException("Error during video transcoding, exit code: " + exitCode);
+                }
+                System.out.println("Transcoding complete");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            System.out.println("Transcoding complete");
         }
     }
 }
