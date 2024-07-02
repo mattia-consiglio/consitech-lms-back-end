@@ -134,7 +134,7 @@ public class MediaService {
                         .filename(newFilename)
                         .parentId(mediaDifference.getParentId())
                         .build();
-                return mediaVideoService.uploadVideo(mediaVideo, file);
+                return mediaVideoService.uploadVideo(mediaVideo);
             default:
                 throw new BadRequestException("Invalid media type");
         }

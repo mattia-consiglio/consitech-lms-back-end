@@ -3,11 +3,12 @@ package mattia.consiglio.consitech.lms.services;
 import mattia.consiglio.consitech.lms.entities.MediaVideo;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.repositories.MediaVideoRepository;
+import mattia.consiglio.consitech.lms.utils.ProcessManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -15,66 +16,49 @@ import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
 @Service
 public class MediaVideoService {
+    private final MediaVideoRepository mediaVideoRepository;
+
+    private final MediaServiceUtils mediaServiceUtils;
+
+    private final VideoTranscodingService videoTranscodingService;
+
+
     @Autowired
-    private MediaVideoRepository mediaVideoRepository;
-
-    @Autowired
-    private MediaServiceUtils mediaServiceUtils;
-
-    @Autowired
-    private VideoTranscodingService videoTranscodingService;
+    public MediaVideoService(MediaVideoRepository mediaVideoRepository, MediaServiceUtils mediaServiceUtils, VideoTranscodingService videoTranscodingService) {
+        this.mediaVideoRepository = mediaVideoRepository;
+        this.mediaServiceUtils = mediaServiceUtils;
+        this.videoTranscodingService = videoTranscodingService;
+    }
 
 
-    public MediaVideo uploadVideo(MediaVideo media, MultipartFile file) {
-        try {
-            InputStream inputStream = file.getInputStream();
+    public MediaVideo uploadVideo(MediaVideo media) {
 
-            File fileVideo = mediaServiceUtils.getFile(media);
+        File fileVideo = mediaServiceUtils.getFile(media);
 
-            double videoLength = getVideoDuration(fileVideo.getAbsolutePath());
+        double videoLength = getVideoDuration(fileVideo.getAbsolutePath());
 
-            // Transcodifica il video
-            this.startTranscode(media);
+        // Transcodifica il video
+        this.startTranscode(media);
 
-            MediaVideo mediaImage = new MediaVideo.Builder()
-                    .media(media)
-                    .duration(videoLength)
-                    .build();
-            return mediaVideoRepository.save(mediaImage);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        MediaVideo mediaImage = new MediaVideo.Builder()
+                .media(media)
+                .duration(videoLength)
+                .build();
+        return mediaVideoRepository.save(mediaImage);
+
     }
 
     public long getVideoDuration(String filePath) {
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                "ffmpeg", "-i", filePath, "-hide_banner"
-        );
-        processBuilder.redirectErrorStream(true);
+        String[] command = {"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filePath};
+        long duration = 0;
+        Map<String, String> output = ProcessManager.run(command);
+        String durationString = output.get("output");
 
-        try {
-            Process process = processBuilder.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.contains("Duration:")) {
-                    String duration = line.split("Duration:")[1].split(",")[0].trim();
-                    return parseDuration(duration);
-                }
-            }
-            process.waitFor();
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Error while getting video duration", e);
+        if (durationString != null && !durationString.trim().isEmpty()) {
+            durationString = durationString.trim();
+            duration = Double.valueOf(durationString).longValue();
         }
-        return 0;
-    }
-
-    private long parseDuration(String duration) {
-        String[] parts = duration.split(":");
-        long hours = Long.parseLong(parts[0]);
-        long minutes = Long.parseLong(parts[1]);
-        double seconds = Double.parseDouble(parts[2]);
-        return (hours * 3600) + (minutes * 60) + (long) seconds;
+        return duration;
     }
 
     public Map<String, Integer> getTranscodeProgress(String id) {
