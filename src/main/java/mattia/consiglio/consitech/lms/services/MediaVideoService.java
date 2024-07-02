@@ -1,34 +1,28 @@
 package mattia.consiglio.consitech.lms.services;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import mattia.consiglio.consitech.lms.entities.MediaVideo;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.repositories.MediaVideoRepository;
 import mattia.consiglio.consitech.lms.utils.ProcessManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class MediaVideoService {
     private final MediaVideoRepository mediaVideoRepository;
-
     private final MediaServiceUtils mediaServiceUtils;
-
     private final VideoTranscodingService videoTranscodingService;
-
-
-    @Autowired
-    public MediaVideoService(MediaVideoRepository mediaVideoRepository, MediaServiceUtils mediaServiceUtils, VideoTranscodingService videoTranscodingService) {
-        this.mediaVideoRepository = mediaVideoRepository;
-        this.mediaServiceUtils = mediaServiceUtils;
-        this.videoTranscodingService = videoTranscodingService;
-    }
 
 
     public MediaVideo uploadVideo(MediaVideo media) {
@@ -37,14 +31,17 @@ public class MediaVideoService {
 
         double videoLength = getVideoDuration(fileVideo.getAbsolutePath());
 
-        // Transcodifica il video
-        this.startTranscode(media);
 
         MediaVideo mediaImage = new MediaVideo.Builder()
                 .media(media)
                 .duration(videoLength)
                 .build();
-        return mediaVideoRepository.save(mediaImage);
+        media = mediaVideoRepository.save(mediaImage);
+
+        // Transcode the video
+        this.startTranscode(media);
+
+        return media;
 
     }
 
@@ -70,7 +67,6 @@ public class MediaVideoService {
         } else {
             throw new ResourceNotFoundException("Media not found");
         }
-
     }
 
     public void startTranscode(MediaVideo media) {
@@ -78,7 +74,9 @@ public class MediaVideoService {
             try {
                 videoTranscodingService.transcodeVideo(media);
             } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+
+                log.error("Error transcoding video");
+                log.error(Arrays.toString(e.getStackTrace()));
                 Thread.currentThread().interrupt();
             }
         }).start();

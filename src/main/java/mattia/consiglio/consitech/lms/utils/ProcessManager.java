@@ -1,13 +1,17 @@
 package mattia.consiglio.consitech.lms.utils;
 
+import lombok.extern.slf4j.Slf4j;
+import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class ProcessManager {
-
     private static final String OUTPUT = "output";
     private static final String ERROR = "error";
 
@@ -36,19 +40,19 @@ public class ProcessManager {
             // Log error output
             String errorLine;
             while ((errorLine = errorReader.readLine()) != null) {
-                System.err.println(errorLine);
+                log.error(errorLine);
                 output.put(ERROR, output.get(ERROR) + errorLine + "\n");
             }
 
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                throw new RuntimeException("Error during running the process , exit code: " + exitCode);
+                throw new BadRequestException("Error during running the process , exit code: " + exitCode);
             }
-            System.out.println("Process complete");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            log.info("Process complete");
+        } catch (IOException | InterruptedException e) {
+            log.error("Error during running the process: " + e.getMessage());
+            log.error(Arrays.toString(e.getStackTrace()));
+            Thread.currentThread().interrupt();
         }
         return output;
     }

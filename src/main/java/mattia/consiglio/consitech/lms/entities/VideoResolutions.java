@@ -22,5 +22,4 @@ public enum VideoResolutions {
         this.height = height;
         this.quality = quality;
     }
-
 }
