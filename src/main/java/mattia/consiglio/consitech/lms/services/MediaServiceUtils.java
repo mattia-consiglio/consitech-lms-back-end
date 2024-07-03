@@ -2,6 +2,7 @@ package mattia.consiglio.consitech.lms.services;
 
 import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.Media;
+import mattia.consiglio.consitech.lms.entities.MediaType;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.repositories.MediaRepository;
@@ -9,6 +10,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +23,7 @@ import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 @Service
 public class MediaServiceUtils {
     private final MediaRepository mediaRepository;
+    @SuppressWarnings("SpringQualifierCopyableLombok")
     @Qualifier("mediaPath")
     private final String mediaPath;
 
@@ -41,18 +46,37 @@ public class MediaServiceUtils {
         return mediaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Media", id));
     }
 
-    public File getFile(Media media) {
-        String rootPath = System.getProperty("user.dir");
-        String filename = media.getFilename();
+
+    public File getMediaFile(Media media, boolean ignoreNotFound) {
         UUID parentId = media.getParentId();
         if (parentId != null) {
-            Media parentMedia = this.getMedia(parentId);
-            filename = parentMedia.getFilename();
+            media = this.getMedia(parentId);
         }
-
-
-        return new File(rootPath + File.separator + "media" + File.separator + filename);
+        return getFile(media, ignoreNotFound);
     }
+
+    public File getMediaFile(Media media) {
+        return getMediaFile(media, false);
+    }
+
+    private File getFile(Media media, boolean ignoreNotFound) {
+        String filename = media.getFilename();
+        String directoryPath = media.getType() == MediaType.VIDEO ? getVideoPath(filename) : mediaPath;
+        File file = new File(directoryPath + File.separator + filename);
+
+        try {
+            if (!file.getCanonicalPath().startsWith(mediaPath)) {
+                throw new ResourceNotFoundException("File", filename);
+            }
+        } catch (IOException e) {
+            throw new ResourceNotFoundException("File", filename);
+        }
+        if (!ignoreNotFound && (!file.exists() || !file.isFile())) {
+            throw new ResourceNotFoundException("File", filename);
+        }
+        return file;
+    }
+
 
     public boolean isValidFileExtension(String fileExtension) {
         // Add valid file extensions here
@@ -64,4 +88,48 @@ public class MediaServiceUtils {
         return mediaPath + File.separator + media.getFilename();
     }
 
+    public String getPath(String filename) {
+        return mediaPath + File.separator + filename;
+    }
+
+    public boolean isValidFilename(String filename) {
+        if (filename == null ||
+                !filename.contains(".") ||
+                filename.contains("..") ||
+                filename.startsWith(".") ||
+                filename.endsWith(".")) {
+            return false;
+        }
+        // validate filename
+        String filenameRegex = "^[^.][a-zA-Z0-9_\\-.]+\\.(?:png|jpg|jpeg|mp4)$";
+        if (!filename.matches(filenameRegex)) {
+            return false;
+        }
+        Path path = Path.of(getPath(filename)).normalize();
+        Path rootPath = Path.of(mediaPath).normalize();
+        return path.startsWith(rootPath);
+    }
+
+    public String getVideoPath(String filename) {
+        return mediaPath + File.separator + filename.replace(".", "_");
+    }
+
+    void deleteFile(File file) {
+        boolean delete = tryDeleteFile(file);
+        for (int i = 0; i < 4 || delete; i++) {
+            delete = tryDeleteFile(file);
+        }
+    }
+
+    boolean tryDeleteFile(File file) {
+        if (file.exists()) {
+            try {
+                Files.delete(file.toPath());
+                return true;
+            } catch (IOException e) {
+                return false;
+            }
+        }
+        return false;
+    }
 }

@@ -27,30 +27,24 @@ public class VideoTranscodingService {
     @SuppressWarnings("SpringQualifierCopyableLombok")
     @Qualifier("mediaPath")
     private final String mediaPath;
-    @SuppressWarnings("SpringQualifierCopyableLombok")
-    @Qualifier("transcodePath")
-    private final String transcodePath;
     private final MediaServiceUtils mediaServiceUtils;
     private final MediaVideoRepository mediaVideoRepository;
 
 
     private final Map<String, Integer> progressMap = new ConcurrentHashMap<>();
 
-    public void transcodeVideo(MediaVideo mediaVideo) throws IOException, InterruptedException {
+    public void startTranscodeVideo(MediaVideo mediaVideo) throws IOException {
         String filename = mediaVideo.getFilename();
-        String id = String.valueOf(mediaVideo.getId());
-        File sourceFile = new File(mediaPath, filename);
+        String videoPath = mediaServiceUtils.getVideoPath(filename);
+        File sourceFile = new File(videoPath, filename);
         if (!sourceFile.exists()) {
             throw new IOException("File " + filename + " does not exist");
         }
 
+        String id = String.valueOf(mediaVideo.getId());
 
-        String videoResolution = getResolution(sourceFile);
-        String[] videoResolutionList = videoResolution.split(",");
-        int width = Integer.parseInt(videoResolutionList[0]);
-
+        int width = getResolution(sourceFile);
         int videoFrames = getFrames(sourceFile);
-
 
         List<VideoResolutions> resolutionsEnum = new ArrayList<>();
         List<String> resolutions = new ArrayList<>();
@@ -68,7 +62,8 @@ public class VideoTranscodingService {
             resolutionsEnum.add(resolution);
         }
 
-        mediaServiceUtils.ensureDirectoryExists(transcodePath);
+
+        mediaServiceUtils.ensureDirectoryExists(videoPath);
 
         LineProcessor lineProcessor = (String line) -> {
             if (line.startsWith("frame=")) {
@@ -83,38 +78,45 @@ public class VideoTranscodingService {
             String resolution = resolutions.get(i);
             String crf = qualitySettings.get(i).toString();
             String resolutionName = resolutionsNames.get(i);
-            String outputFilePath = new File(transcodePath, filename.replace(".mp4", "_" + resolutionName + ".mp4")).getAbsolutePath();
+            String outputFilePath = new File(videoPath, filename.replace(".mp4", "_" + resolutionName + ".mp4")).getAbsolutePath();
 
-            String[] command = {"ffmpeg",
-                    "-i", sourceFile.getAbsolutePath(),
-                    "-vf", "scale=" + resolution,
-                    "-c:v", "libx264",
-                    "-preset", "fast",
-                    "-crf", crf,
-                    "-c:a", "aac",
-                    "-nostats",
-                    "-progress", "-",
-                    "-hide_banner",
-                    outputFilePath};
 
-            ProcessManager.run(command, lineProcessor);
-
+            ffmpegTranscode(sourceFile, resolution, crf, outputFilePath, lineProcessor);
             mediaVideo.setResolutions(resolutionsEnum);
             mediaVideoRepository.save(mediaVideo);
 
             log.info("Transcoding video {} to {} completed.", filename, resolutionName);
         }
+        progressMap.remove(id);
+        log.info("Transcoding video {} completed.", filename);
+        mediaServiceUtils.deleteFile(sourceFile);
     }
 
-    private String getResolution(File sourceFile) throws BadRequestException {
-        String[] command = {"ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", sourceFile.getAbsolutePath()};
+    private void ffmpegTranscode(File sourceFile, String resolution, String crf, String outputFilePath, LineProcessor lineProcessor) {
+        String[] command = {"ffmpeg",
+                "-i", sourceFile.getAbsolutePath(),
+                "-vf", "scale=" + resolution,
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", crf,
+                "-c:a", "aac",
+                "-nostats",
+                "-progress", "-",
+                "-hide_banner",
+                outputFilePath};
+
+        ProcessManager.run(command, lineProcessor);
+    }
+
+    private int getResolution(File sourceFile) throws BadRequestException {
+        String[] command = {"ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width", "-of", "csv=p=0", sourceFile.getAbsolutePath()};
 
         String videoResolution = ProcessManager.run(command).get("output");
-        if (videoResolution == null || !videoResolution.contains(",")) {
+        if (videoResolution == null) {
             throw new BadRequestException("Cannot determine video resolution");
         }
         videoResolution = videoResolution.replace("\n", "");
-        return videoResolution;
+        return Integer.parseInt(videoResolution);
     }
 
     private int getFrames(File sourceFile) throws BadRequestException {

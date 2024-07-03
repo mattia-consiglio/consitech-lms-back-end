@@ -1,8 +1,8 @@
 package mattia.consiglio.consitech.lms.services;
 
+import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -12,31 +12,24 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.net.URLConnection;
 
+@RequiredArgsConstructor
 @Service
 public class MediaStreamService {
-    @Autowired
-    private MediaService mediaService;
-
-    @Autowired
-    private MediaServiceUtils mediaServiceUtils;
+    private final MediaService mediaService;
+    private final MediaServiceUtils mediaServiceUtils;
 
     public ResponseEntity<InputStreamResource> getMediaStream(String filename) {
+        if (!mediaServiceUtils.isValidFilename(filename)) {
+            throw new BadRequestException("Invalid filename");
+        }
+
         Media media = mediaService.getMediaByFilename(filename);
         if (media == null) {
             return null;
         }
-        
-        if (filename == null) {
-            throw new BadRequestException("Media filename cannot be null");
-        }
-        if (!filename.contains(".")) {
-            throw new BadRequestException("Media filename must contain an extension");
-        }
-        if (filename.contains("..")) {
-            throw new BadRequestException("Media filename cannot contain '..'");
-        }
 
-        File file = mediaServiceUtils.getFile(media);
+
+        File file = mediaServiceUtils.getMediaFile(media);
 
         InputStream inputStream = null;
 
@@ -58,4 +51,6 @@ public class MediaStreamService {
 
         return new ResponseEntity<>(new InputStreamResource(inputStream), headers, HttpStatus.OK);
     }
+
+
 }

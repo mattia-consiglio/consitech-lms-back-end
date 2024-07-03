@@ -27,7 +27,7 @@ public class MediaVideoService {
 
     public MediaVideo uploadVideo(MediaVideo media) {
 
-        File fileVideo = mediaServiceUtils.getFile(media);
+        File fileVideo = mediaServiceUtils.getMediaFile(media);
 
         double videoLength = getVideoDuration(fileVideo.getAbsolutePath());
 
@@ -72,8 +72,8 @@ public class MediaVideoService {
     public void startTranscode(MediaVideo media) {
         new Thread(() -> {
             try {
-                videoTranscodingService.transcodeVideo(media);
-            } catch (IOException | InterruptedException e) {
+                videoTranscodingService.startTranscodeVideo(media);
+            } catch (IOException e) {
 
                 log.error("Error transcoding video");
                 log.error(Arrays.toString(e.getStackTrace()));

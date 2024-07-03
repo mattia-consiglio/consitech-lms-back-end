@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @EqualsAndHashCode
-@Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @Table(name = "media")
 @Inheritance(strategy = InheritanceType.JOINED)
+@Entity
 public abstract class Media {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -120,6 +120,4 @@ public abstract class Media {
 
         public abstract Media build();
     }
-
-
 }

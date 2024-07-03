@@ -3,6 +3,7 @@ package mattia.consiglio.consitech.lms.services;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.entities.MediaImage;
@@ -13,7 +14,7 @@ import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.UpdateMediaDTO;
 import mattia.consiglio.consitech.lms.repositories.AbstractContentRepository;
 import mattia.consiglio.consitech.lms.repositories.MediaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,29 +37,18 @@ import java.util.regex.Pattern;
 
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
+@RequiredArgsConstructor
 @Service
 public class MediaService {
-
-    @Autowired
-    private MediaRepository mediaRepository;
-
-    @Autowired
-    private AbstractContentRepository abstractContentRepository;
-
-    @Autowired
-    private MediaImageService mediaImageService;
-
-    @Autowired
-    private MediaVideoService mediaVideoService;
-
-    @Autowired
-    private HttpServletRequest request;
-
-    @Autowired
-    private MediaServiceUtils mediaServiceUtils;
-
-    @Autowired
-    private String mediaPath;
+    private final MediaRepository mediaRepository;
+    private final AbstractContentRepository abstractContentRepository;
+    private final MediaImageService mediaImageService;
+    private final MediaVideoService mediaVideoService;
+    private final HttpServletRequest request;
+    private final MediaServiceUtils mediaServiceUtils;
+    @SuppressWarnings("SpringQualifierCopyableLombok")
+    @Qualifier("mediaPath")
+    private final String mediaPath;
 
     public Media uploadMedia(MultipartFile file) {
         if (file.isEmpty()) {
@@ -83,7 +73,7 @@ public class MediaService {
             throw new BadRequestException("Invalid file extension");
         }
 
-        String alt = filename.replaceAll("-", " ").replaceAll("\\s+", " ").trim();
+        String alt = filename.replace("-", " ").replaceAll("\\s+", " ").trim();
 
         // Sanitize filename
         filename = filename.toLowerCase();
@@ -104,13 +94,13 @@ public class MediaService {
 
         String newFilename = mediaDifference.getFilename();
 
+        MediaType mediaType = getMediaType(file);
 
-        if (mediaDifference.isDifferent()) saveFile(file, newFilename);
+        if (mediaDifference.isDifferent()) saveFile(file, newFilename, mediaType);
 
         // Build media url
         String url = getHostUrl() + "/media/" + newFilename;
 
-        MediaType mediaType = getMediaType(file);
 
         switch (mediaType) {
             case IMAGE:
@@ -141,11 +131,12 @@ public class MediaService {
 
     }
 
-    public void saveFile(MultipartFile file, String newFilename) {
+    public void saveFile(MultipartFile file, String newFilename, MediaType mediaType) {
 
-        mediaServiceUtils.ensureDirectoryExists(mediaPath);
+        String destinationPath = mediaType == MediaType.VIDEO ? mediaServiceUtils.getVideoPath(newFilename) : mediaPath;
+        mediaServiceUtils.ensureDirectoryExists(destinationPath);
 
-        File mediaFile = new File(mediaPath, newFilename);
+        File mediaFile = new File(destinationPath, newFilename);
         try (InputStream inputStream = file.getInputStream();
              FileOutputStream outputStream = new FileOutputStream(mediaFile)) {
             byte[] buffer = new byte[8192];
@@ -154,13 +145,12 @@ public class MediaService {
                 outputStream.write(buffer, 0, bytesRead);
             }
         } catch (IOException e) {
-
             throw new RuntimeException(e);
         }
 
         // Check if the file exists
         if (!mediaFile.exists()) {
-            throw new RuntimeException("File does not exist: " + mediaFile.getAbsolutePath());
+            throw new ResourceNotFoundException("File does not exist: " + mediaFile.getAbsolutePath());
         }
     }
 
@@ -295,19 +285,10 @@ public class MediaService {
                 }
                 mediaRepository.delete(m);
             });
-            deleteFile(mediaServiceUtils.getFile(media));
+            mediaServiceUtils.deleteFile(mediaServiceUtils.getMediaFile(media, true));
         }
 
         mediaRepository.delete(media);
-    }
-
-    private void deleteFile(File file) {
-        if (file.exists()) {
-            boolean delete = file.delete();
-            for (int i = 0; i < 4 || delete; i++) {
-                delete = file.delete();
-            }
-        }
     }
 
     public Page<Media> getAllMedia(int page, int size, String sort, String direction) {
