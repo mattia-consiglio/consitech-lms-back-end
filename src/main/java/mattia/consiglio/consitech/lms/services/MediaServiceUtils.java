@@ -1,10 +1,11 @@
 package mattia.consiglio.consitech.lms.services;
 
+import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.repositories.MediaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -14,10 +15,12 @@ import java.util.UUID;
 
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
+@RequiredArgsConstructor
 @Service
 public class MediaServiceUtils {
-    @Autowired
-    private MediaRepository mediaRepository;
+    private final MediaRepository mediaRepository;
+    @Qualifier("mediaPath")
+    private final String mediaPath;
 
     public void ensureDirectoryExists(String directoryPath) {
         File directory = new File(directoryPath);
@@ -55,6 +58,10 @@ public class MediaServiceUtils {
         // Add valid file extensions here
         List<String> validExtensions = Arrays.asList("jpg", "jpeg", "png", "gif", "mp4", "avi");
         return validExtensions.contains(fileExtension.toLowerCase());
+    }
+
+    public String getPath(Media media) {
+        return mediaPath + File.separator + media.getFilename();
     }
 
 }

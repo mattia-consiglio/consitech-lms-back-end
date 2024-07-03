@@ -24,12 +24,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Service
 public class VideoTranscodingService {
+    @SuppressWarnings("SpringQualifierCopyableLombok")
     @Qualifier("mediaPath")
     private final String mediaPath;
+    @SuppressWarnings("SpringQualifierCopyableLombok")
     @Qualifier("transcodePath")
     private final String transcodePath;
     private final MediaServiceUtils mediaServiceUtils;
     private final MediaVideoRepository mediaVideoRepository;
+
 
     private final Map<String, Integer> progressMap = new ConcurrentHashMap<>();
 
@@ -41,23 +44,12 @@ public class VideoTranscodingService {
             throw new IOException("File " + filename + " does not exist");
         }
 
-        String[] getResulutionCommand = {"ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", sourceFile.getAbsolutePath()};
 
-        String videoResolution = ProcessManager.run(getResulutionCommand).get("output");
-        if (videoResolution != null && !videoResolution.contains(",")) {
-            throw new BadRequestException("Cannot determine video resolution");
-        }
-        videoResolution = videoResolution.replace("\n", "");
+        String videoResolution = getResolution(sourceFile);
         String[] videoResolutionList = videoResolution.split(",");
         int width = Integer.parseInt(videoResolutionList[0]);
 
-        String[] getVideoFramesCommand = {"ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", sourceFile.getAbsolutePath()};
-        String videoFramesString = ProcessManager.run(getVideoFramesCommand).get("output");
-        if (videoFramesString == null) {
-            throw new BadRequestException("Cannot determine video frames");
-        }
-        videoFramesString = videoFramesString.replace("\n", "");
-        int videoFrames = Integer.parseInt(videoFramesString);
+        int videoFrames = getFrames(sourceFile);
 
 
         List<VideoResolutions> resolutionsEnum = new ArrayList<>();
@@ -110,7 +102,28 @@ public class VideoTranscodingService {
             mediaVideo.setResolutions(resolutionsEnum);
             mediaVideoRepository.save(mediaVideo);
 
-            log.info("Transcoding video " + filename + " to " + resolutionName + " completed.");
+            log.info("Transcoding video {} to {} completed.", filename, resolutionName);
         }
+    }
+
+    private String getResolution(File sourceFile) throws BadRequestException {
+        String[] command = {"ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", sourceFile.getAbsolutePath()};
+
+        String videoResolution = ProcessManager.run(command).get("output");
+        if (videoResolution == null || !videoResolution.contains(",")) {
+            throw new BadRequestException("Cannot determine video resolution");
+        }
+        videoResolution = videoResolution.replace("\n", "");
+        return videoResolution;
+    }
+
+    private int getFrames(File sourceFile) throws BadRequestException {
+        String[] command = {"ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", sourceFile.getAbsolutePath()};
+        String videoFramesString = ProcessManager.run(command).get("output");
+        if (videoFramesString == null) {
+            throw new BadRequestException("Cannot determine video frames");
+        }
+        videoFramesString = videoFramesString.replace("\n", "");
+        return Integer.parseInt(videoFramesString);
     }
 }

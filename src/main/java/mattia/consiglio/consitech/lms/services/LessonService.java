@@ -1,5 +1,6 @@
 package mattia.consiglio.consitech.lms.services;
 
+import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.*;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
@@ -7,7 +8,6 @@ import mattia.consiglio.consitech.lms.payloads.NewLessonDTO;
 import mattia.consiglio.consitech.lms.payloads.NewSeoDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateLessonDTO;
 import mattia.consiglio.consitech.lms.repositories.LessonRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,21 +22,14 @@ import java.util.UUID;
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 import static mattia.consiglio.consitech.lms.utils.SecurityUtils.hasAuthority;
 
+@RequiredArgsConstructor
 @Service
 public class LessonService {
-    @Autowired
-    private LessonRepository lessonRepository;
-    @Autowired
-    private MediaService mediaService;
-    @Autowired
-    private CourseService courseService;
-    @Autowired
-    private LanguageService languageService;
-    @Autowired
-    private SeoService seoService;
-
-    @Autowired
-    private UserService userService;
+    private final LessonRepository lessonRepository;
+    private final MediaService mediaService;
+    private final CourseService courseService;
+    private final LanguageService languageService;
+    private final SeoService seoService;
 
 
     public Lesson createLesson(NewLessonDTO lessonDTO) {

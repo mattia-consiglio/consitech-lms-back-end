@@ -1,5 +1,6 @@
 package mattia.consiglio.consitech.lms.services;
 
+import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.*;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
@@ -7,7 +8,6 @@ import mattia.consiglio.consitech.lms.payloads.NewCourseDTO;
 import mattia.consiglio.consitech.lms.payloads.NewSeoDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateCourseDTO;
 import mattia.consiglio.consitech.lms.repositories.CourseRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,19 +22,13 @@ import java.util.UUID;
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 import static mattia.consiglio.consitech.lms.utils.SecurityUtils.hasAuthority;
 
+@RequiredArgsConstructor
 @Service
 public class CourseService {
-    @Autowired
-    private CourseRepository courseRepository;
-
-    @Autowired
-    private SeoService seoService;
-
-    @Autowired
-    private LanguageService languageService;
-
-    @Autowired
-    private MediaService mediaService;
+    private final CourseRepository courseRepository;
+    private final SeoService seoService;
+    private final LanguageService languageService;
+    private final MediaService mediaService;
 
     public Course getCourse(UUID uuid) {
         Course course = courseRepository.findById(uuid).orElseThrow(() -> new ResourceNotFoundException("Course", uuid.toString()));
@@ -169,6 +163,4 @@ public class CourseService {
         courseRepository.delete(course);
         seoService.deleteSeo(course.getSeo().getId());
     }
-
-
 }
