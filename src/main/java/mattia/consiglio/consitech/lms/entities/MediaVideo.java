@@ -1,14 +1,13 @@
 package mattia.consiglio.consitech.lms.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,10 +18,20 @@ import java.util.List;
 @Table(name = "media_videos")
 public class MediaVideo extends Media {
     private double duration;
-    private List<VideoResolutions> resolutions;
+    @ManyToMany(cascade = {CascadeType.ALL})
+    @JoinTable(
+            name = "MediaVideo_VideoResolutions",
+            joinColumns = {@JoinColumn(name = "media_video_id")},
+            inverseJoinColumns = {@JoinColumn(name = "video_resolution_id")}
+    )
+    private List<VideoResolution> resolutions;
     @ManyToOne
     @JoinColumn(name = "thumbnail_id")
     private MediaImage thumbnail;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "video")
+    private List<Lesson> lessons = new ArrayList<>();
 
     private MediaVideo(Builder builder) {
         super(builder);

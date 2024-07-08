@@ -18,11 +18,10 @@ public class Lesson extends AbstractContent {
     @JsonView(View.Internal.class)
     private String liveEditor;
 
+    @ManyToOne
+    @JoinColumn(name = "video_id")
     @JsonView(View.Internal.class)
-    private String videoId;
-
-    @JsonView(View.Internal.class)
-    private String videoThumbnail;
+    private MediaVideo video;
 
     @Column(columnDefinition = "TEXT")
     @JsonView(View.Internal.class)

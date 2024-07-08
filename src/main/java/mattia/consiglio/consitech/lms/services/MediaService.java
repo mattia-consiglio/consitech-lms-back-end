@@ -7,12 +7,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.entities.MediaImage;
-import mattia.consiglio.consitech.lms.entities.MediaType;
 import mattia.consiglio.consitech.lms.entities.MediaVideo;
+import mattia.consiglio.consitech.lms.entities.VideoResolution;
+import mattia.consiglio.consitech.lms.entities.enums.MediaType;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.UpdateMediaDTO;
 import mattia.consiglio.consitech.lms.repositories.AbstractContentRepository;
+import mattia.consiglio.consitech.lms.repositories.LessonRepository;
 import mattia.consiglio.consitech.lms.repositories.MediaRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -30,7 +32,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,6 +46,7 @@ import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 public class MediaService {
     private final MediaRepository mediaRepository;
     private final AbstractContentRepository abstractContentRepository;
+    private final LessonRepository lessonRepository;
     private final MediaImageService mediaImageService;
     private final MediaVideoService mediaVideoService;
     private final HttpServletRequest request;
@@ -113,7 +118,7 @@ public class MediaService {
                         .filename(newFilename)
                         .parentId(mediaDifference.getParentId())
                         .build();
-                return mediaImageService.uploadImage(mediaImage, file);
+                return mediaImageService.uploadImage(mediaImage);
 
             case VIDEO:
                 MediaVideo mediaVideo = new MediaVideo.Builder().url(url)
@@ -181,10 +186,21 @@ public class MediaService {
         isDifferent = false;
 
         String regex = "-(\\d+)\\." + fileExtension + "$|\\." + fileExtension + "$";
-        Pattern pattern = Pattern.compile(regex);
 
+
+        Map<String, Integer> mediaIndex = getLastMediaIndex(mediaList, regex, filename, isDifferent, fileExtension, parentMedia);
+
+        if (mediaIndex.get("index") == 0 && mediaIndex.get("found") == 0) {
+            return new MediaDifference(isDifferent, filename + "." + fileExtension, parentMedia.getId());
+        }
+
+        return new MediaDifference(isDifferent, filename + "-" + mediaIndex.get("index") + "." + fileExtension, parentMedia.getId());
+    }
+
+    private Map<String, Integer> getLastMediaIndex(List<Media> mediaList, String regex, String filename, boolean isDifferent, String fileExtension, Media parentMedia) {
         final int[] index = {0};
         final boolean[] found = {false};
+        final Map<String, Integer> output = new HashMap<>();
 
         mediaList.forEach((Media m) -> {
             if (m.getFilename().replaceAll(regex, "").equals(filename) && m.getParentId() != null) {
@@ -192,7 +208,7 @@ public class MediaService {
                     found[0] = true;
                 }
                 String mediaFilename = m.getFilename();
-                Matcher matcher = pattern.matcher(mediaFilename);
+                Matcher matcher = Pattern.compile(regex).matcher(mediaFilename);
                 if (matcher.find()) {
                     if (matcher.group(1) != null) {
                         String indexString = matcher.group(1);
@@ -205,11 +221,16 @@ public class MediaService {
             }
         });
 
-        if (index[0] == 0 && !found[0])
-            return new MediaDifference(isDifferent, filename + "." + fileExtension, parentMedia.getId());
-        index[0]++;
+        if (index[0] == 0 && !found[0]) {
+            output.put("index", index[0]);
+            output.put("found", 0);
+            return output;
+        }
 
-        return new MediaDifference(isDifferent, filename + "-" + index[0] + "." + fileExtension, parentMedia.getId());
+        index[0]++;
+        output.put("index", index[0]);
+        output.put("found", 1);
+        return output;
     }
 
     private String getHostUrl() {
@@ -267,28 +288,58 @@ public class MediaService {
 
     public void deleteMedia(UUID id) {
         Media media = this.getMedia(id);
-        if (media.getType() == MediaType.IMAGE) {
-            ((MediaImage) media).getContents().forEach(abstractContent -> {
-                abstractContent.setThumbnailImage(null);
-                abstractContentRepository.save(abstractContent);
-            });
-        }
+
+        updateMediaContents(media);
 
         if (media.getParentId() == null) {
+
             List<Media> mediaList = mediaRepository.findByParentId(media.getId());
-            mediaList.forEach((Media m) -> {
-                if (m.getType() == MediaType.IMAGE) {
-                    ((MediaImage) m).getContents().forEach(abstractContent -> {
-                        abstractContent.setThumbnailImage(null);
-                        abstractContentRepository.save(abstractContent);
-                    });
-                }
+            mediaList.forEach(m -> {
+                updateMediaContents(m);
                 mediaRepository.delete(m);
             });
-            mediaServiceUtils.deleteFile(mediaServiceUtils.getMediaFile(media, true));
+            if (media.getType() == MediaType.IMAGE) {
+                this.deleteImageFile(media);
+            } else {
+                this.deleteVideoFile(media);
+            }
         }
-
         mediaRepository.delete(media);
+    }
+
+    private void deleteImageFile(Media media) {
+        mediaServiceUtils.deleteFile(mediaServiceUtils.getMediaFile(media, true));
+    }
+
+    private void deleteVideoFile(Media media) {
+        MediaVideo mediaVideo = (MediaVideo) media;
+        List<VideoResolution> resolutions = mediaVideo.getResolutions();
+        resolutions.forEach(resolution -> mediaServiceUtils.deleteFile(mediaServiceUtils.getMediaFile(media, true, resolution)));
+        mediaServiceUtils.deleteFile(new File(mediaServiceUtils.getVideoPath(mediaVideo.getFilename())));
+    }
+
+    private void updateMediaContents(Media media) {
+        if (media.getType() == MediaType.IMAGE) {
+            this.updateImageContents(media);
+        } else {
+            this.updateVideoLessons(media);
+        }
+    }
+
+    private void updateImageContents(Media media) {
+        MediaImage mediaImage = (MediaImage) media;
+        mediaImage.getContents().forEach(abstractContent -> {
+            abstractContent.setThumbnailImage(null);
+            abstractContentRepository.save(abstractContent);
+        });
+    }
+
+    private void updateVideoLessons(Media media) {
+        MediaVideo mediaVideo = (MediaVideo) media;
+        mediaVideo.getLessons().forEach(lesson -> {
+            lesson.setVideo(null);
+            lessonRepository.save(lesson);
+        });
     }
 
     public Page<Media> getAllMedia(int page, int size, String sort, String direction) {

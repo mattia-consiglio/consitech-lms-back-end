@@ -3,7 +3,10 @@ package mattia.consiglio.consitech.lms.entities;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.*;
+import mattia.consiglio.consitech.lms.entities.enums.MediaType;
 import mattia.consiglio.consitech.lms.utils.View;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,8 +29,11 @@ public abstract class Media {
     @JsonView(View.Public.class)
     private String url;
 
-    @Column(nullable = false)
+
     @JsonView(View.Public.class)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "media_type")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     private MediaType type;
 
     @JsonView(View.Public.class)

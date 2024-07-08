@@ -31,7 +31,7 @@ public class MediaStreamService {
 
         File file = mediaServiceUtils.getMediaFile(media);
 
-        InputStream inputStream = null;
+        InputStream inputStream;
 
         try {
             inputStream = new BufferedInputStream(new FileInputStream(file));
@@ -39,7 +39,7 @@ public class MediaStreamService {
             throw new BadRequestException("Error while opening file");
         }
 
-        String mimeType = null;
+        String mimeType;
         try {
             mimeType = URLConnection.guessContentTypeFromStream(inputStream);
         } catch (IOException e) {
