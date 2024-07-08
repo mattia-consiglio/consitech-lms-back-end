@@ -72,11 +72,12 @@ jobs:
         docker rm -f consitech-lms-backend-dev-container-test
         docker run -d --name consitech-lms-container-backend \
           -p 8082:8080 \
-          --network mynetwork \
-          -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
-          -e DB_URL=${{ secrets.DB_URL }} \
-          -e DB_USER=${{ secrets.DB_USER }} \
-          -e DB_PASS=${{ secrets.DB_PASS }} \
+          --network dev-network \
+          --restart unless-stopped \
+          -e SERVER_PORT=${{ secrets.SERVER_PORT_DEV }} \
+          -e DB_URL=${{ secrets.DB_URL_DEV }} \
+          -e DB_USER=${{ secrets.DB_USER_DEV }} \
+          -e DB_PASS=${{ secrets.DB_PASS_DEV }} \
           -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
           -e SMTP_HOST=${{ secrets.SMTP_HOST }} \
           -e SMTP_PORT=${{ secrets.SMTP_PORT }} \
