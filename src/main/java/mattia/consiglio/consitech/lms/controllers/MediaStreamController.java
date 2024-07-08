@@ -19,5 +19,4 @@ public class MediaStreamController {
     public ResponseEntity<InputStreamResource> getMediaStream(@PathVariable("filename") String filename) {
         return mediaStreamService.getMediaStream(filename);
     }
-
 }

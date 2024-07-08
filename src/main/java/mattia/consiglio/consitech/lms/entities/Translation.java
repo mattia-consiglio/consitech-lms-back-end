@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import mattia.consiglio.consitech.lms.entities.enums.PublishStatus;
 
 import java.util.UUID;
 
