@@ -1,0 +1,91 @@
+name: Build and Deploy to VPS
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build Docker image
+      run: docker build -t consitech-lms-backend-dev .
+
+    # - name: Remove existing test container if running
+    #   run: |
+    #     if [ $(docker ps -q -f name=consitech-lms-backend-dev-container-test) ]; then
+    #       echo "Stopping and removing existing test container"
+    #       docker rm -f consitech-lms-backend-dev-container-test
+    #     fi
+
+    # - name: Run new container on a different port for testing
+    #   run: |
+    #     docker run -d --name consitech-lms-backend-dev-container-test \
+    #       -p 8083:8080 \
+    #       --network mynetwork \
+    #       -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
+    #       -e DB_USER=${{ secrets.DB_USER }} \
+    #       -e DB_PASS=${{ secrets.DB_PASS }} \
+    #       -e DB_URL=${{ secrets.DB_URL }} \
+    #       -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+    #       -e SMTP_HOST=${{ secrets.SMTP_HOST }} \
+    #       -e SMTP_PORT=${{ secrets.SMTP_PORT }} \
+    #       -e SMTP_USERNAME=${{ secrets.SMTP_USERNAME }} \
+    #       -e SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }} \
+    #       -e ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} \
+    #       -e ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }} \
+    #       -e ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }} \
+    #       -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
+    #       -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
+    #       -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
+    #       consitech-lms-backend-dev
+
+    # - name: Health check
+    #   run: |
+    #     docker logs consitech-lms-backend-dev-container-test
+    #     RETRIES=30
+    #     until echo > /dev/tcp/localhost/8083 || [ $RETRIES -eq 0 ]; do
+    #       echo "Waiting for container..."
+    #       sleep 1
+    #       RETRIES=$((RETRIES - 1))
+    #     done
+    #     if [ $RETRIES -eq 0 ]; then
+    #       echo "New container failed to start"
+    #       docker logs consitech-lms-backend-dev-container-test
+    #       docker rm -f consitech-lms-backend-dev-container-test
+    #       exit 1
+    #     fi
+
+    - name: Stop and remove old container
+      run: docker rm -f consitech-lms-backend-dev-container || true
+
+    - name: Start new container on the original port
+      run: |
+        docker rm -f consitech-lms-backend-dev-container-test
+        docker run -d --name consitech-lms-container-backend \
+          -p 8082:8080 \
+          --network mynetwork \
+          -e SERVER_PORT=${{ secrets.SERVER_PORT }} \
+          -e DB_URL=${{ secrets.DB_URL }} \
+          -e DB_USER=${{ secrets.DB_USER }} \
+          -e DB_PASS=${{ secrets.DB_PASS }} \
+          -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+          -e SMTP_HOST=${{ secrets.SMTP_HOST }} \
+          -e SMTP_PORT=${{ secrets.SMTP_PORT }} \
+          -e SMTP_USERNAME=${{ secrets.SMTP_USERNAME }} \
+          -e SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }} \
+          -e ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} \
+          -e ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }} \
+          -e ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }} \
+          -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
+          -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
+          -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
+          consitech-lms-backend-dev
