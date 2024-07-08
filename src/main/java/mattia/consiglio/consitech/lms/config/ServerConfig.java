@@ -2,6 +2,9 @@ package mattia.consiglio.consitech.lms.config;
 
 
 import com.cloudinary.Cloudinary;
+import lombok.RequiredArgsConstructor;
+import mattia.consiglio.consitech.lms.entities.VideoResolution;
+import mattia.consiglio.consitech.lms.services.VideoResolutionsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +15,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@RequiredArgsConstructor
 @Configuration
 public class ServerConfig {
+    private final VideoResolutionsService videoResolutionsService;
 
     @Bean
     public Cloudinary cloudinaryUploader(@Value("${cloudinary.name}") String name,
@@ -40,5 +45,10 @@ public class ServerConfig {
     @Bean("transcodePath")
     public String transcodePath() {
         return mediaPath() + File.separator + "transcode";
+    }
+
+    @Bean
+    public List<VideoResolution> videoResolutions() {
+        return videoResolutionsService.getVideoResolutions();
     }
 }

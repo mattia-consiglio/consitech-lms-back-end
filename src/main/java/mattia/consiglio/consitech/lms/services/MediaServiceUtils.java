@@ -2,7 +2,8 @@ package mattia.consiglio.consitech.lms.services;
 
 import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.Media;
-import mattia.consiglio.consitech.lms.entities.MediaType;
+import mattia.consiglio.consitech.lms.entities.VideoResolution;
+import mattia.consiglio.consitech.lms.entities.enums.MediaType;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.repositories.MediaRepository;
@@ -47,21 +48,32 @@ public class MediaServiceUtils {
     }
 
 
-    public File getMediaFile(Media media, boolean ignoreNotFound) {
+    public File getMediaFile(Media media, boolean ignoreNotFound, VideoResolution resolution) {
         UUID parentId = media.getParentId();
         if (parentId != null) {
             media = this.getMedia(parentId);
         }
-        return getFile(media, ignoreNotFound);
+        return getFile(media, ignoreNotFound, resolution);
     }
 
     public File getMediaFile(Media media) {
-        return getMediaFile(media, false);
+        return getMediaFile(media, false, null);
     }
 
-    private File getFile(Media media, boolean ignoreNotFound) {
+    public File getMediaFile(Media media, VideoResolution resolution) {
+        return getMediaFile(media, false, resolution);
+    }
+
+    public File getMediaFile(Media media, boolean ignoreNotFound) {
+        return getMediaFile(media, ignoreNotFound, null);
+    }
+
+    private File getFile(Media media, boolean ignoreNotFound, VideoResolution resolution) {
         String filename = media.getFilename();
         String directoryPath = media.getType() == MediaType.VIDEO ? getVideoPath(filename) : mediaPath;
+        if (resolution != null) {
+            filename = filename.replace(".mp4", "_" + resolution.getName() + ".mp4");
+        }
         File file = new File(directoryPath + File.separator + filename);
 
         try {

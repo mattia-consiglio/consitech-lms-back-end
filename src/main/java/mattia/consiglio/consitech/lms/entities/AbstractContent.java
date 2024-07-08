@@ -5,7 +5,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import mattia.consiglio.consitech.lms.entities.enums.PublishStatus;
 import mattia.consiglio.consitech.lms.utils.View;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.LocalDateTime;
 
@@ -26,8 +29,9 @@ public abstract class AbstractContent extends TranslatableContent {
     @JsonView(View.Public.class)
     private String description;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "publish_status")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @JsonView(View.Admin.class)
     private PublishStatus publishStatus;
 

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import mattia.consiglio.consitech.lms.entities.UserRole;
+import mattia.consiglio.consitech.lms.entities.enums.UserRole;
 import mattia.consiglio.consitech.lms.validations.ValueOfEnum;
 
 public record EditUserDTO(

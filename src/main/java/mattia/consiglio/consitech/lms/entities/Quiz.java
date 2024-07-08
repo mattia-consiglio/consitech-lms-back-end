@@ -5,6 +5,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import mattia.consiglio.consitech.lms.entities.enums.QuizType;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.util.UUID;
 
@@ -19,7 +22,9 @@ public class Quiz {
     @Setter(value = AccessLevel.NONE)
     private UUID id;
     private String content;
-    @Enumerated(value = EnumType.STRING)
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "quiz_type")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     private QuizType type;
     @ManyToOne
     @JoinColumn(name = "lesson_id")

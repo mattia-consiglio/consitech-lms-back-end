@@ -6,6 +6,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import mattia.consiglio.consitech.lms.entities.enums.UserRole;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,7 +31,10 @@ public class User implements UserDetails {
     private String username;
     private String email;
     private String password;
-    @Enumerated(value = EnumType.STRING)
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "user_role")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     private UserRole role;
 
     public User(String username, String email, String password, UserRole role) {

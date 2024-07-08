@@ -2,6 +2,8 @@ package mattia.consiglio.consitech.lms.services;
 
 import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.*;
+import mattia.consiglio.consitech.lms.entities.enums.PublishStatus;
+import mattia.consiglio.consitech.lms.entities.enums.UserRole;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewLessonDTO;
@@ -41,12 +43,14 @@ public class LessonService {
         if (lessonDTO.thumbnailId() != null) {
             lesson.setThumbnailImage((MediaImage) mediaService.getMedia(lessonDTO.thumbnailId()));
         }
+        if (lessonDTO.videoId() != null) {
+            lesson.setVideo((MediaVideo) mediaService.getMedia(lessonDTO.videoId()));
+        }
         lesson.setTitle(lessonDTO.title());
         lesson.setSlug(lessonDTO.slug());
         lesson.setDescription(lessonDTO.description());
         lesson.setMainLanguage(languageService.getLanguage(lessonDTO.mainLanguageId()));
         lesson.setLiveEditor(lessonDTO.liveEditor());
-        lesson.setVideoId(lessonDTO.videoId());
         lesson.setContent(lessonDTO.content());
         lesson.setPublishStatus(PublishStatus.DRAFT);
         lesson.setDisplayOrder(lessonRepository.count() + 1);
@@ -106,11 +110,13 @@ public class LessonService {
         if (lesson.getCreatedAt() == null) {
             lesson.setCreatedAt(LocalDateTime.now());
         }
+        if (lessonDTO.videoId() != null) {
+            lesson.setVideo((MediaVideo) mediaService.getMedia(lessonDTO.videoId()));
+        }
         lesson.setTitle(lessonDTO.title());
         lesson.setSlug(lessonDTO.slug());
         lesson.setDescription(lessonDTO.description());
         lesson.setLiveEditor(lessonDTO.liveEditor());
-        lesson.setVideoId(lessonDTO.videoId());
         lesson.setContent(lessonDTO.content());
         lesson.setPublishStatus(PublishStatus.valueOf(lessonDTO.publishStatus()));
         lesson.setCourse(courseService.getCourse(lessonDTO.courseId()));

@@ -1,7 +1,7 @@
 package mattia.consiglio.consitech.lms.repositories;
 
 import mattia.consiglio.consitech.lms.entities.User;
-import mattia.consiglio.consitech.lms.entities.UserRole;
+import mattia.consiglio.consitech.lms.entities.enums.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

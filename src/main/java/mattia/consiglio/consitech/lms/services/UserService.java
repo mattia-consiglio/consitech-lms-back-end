@@ -2,7 +2,7 @@ package mattia.consiglio.consitech.lms.services;
 
 import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.User;
-import mattia.consiglio.consitech.lms.entities.UserRole;
+import mattia.consiglio.consitech.lms.entities.enums.UserRole;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.*;

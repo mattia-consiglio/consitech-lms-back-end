@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mattia.consiglio.consitech.lms.entities.MediaVideo;
-import mattia.consiglio.consitech.lms.entities.VideoResolutions;
+import mattia.consiglio.consitech.lms.entities.VideoResolution;
 import mattia.consiglio.consitech.lms.repositories.MediaVideoRepository;
 import mattia.consiglio.consitech.lms.utils.LineProcessor;
 import mattia.consiglio.consitech.lms.utils.ProcessManager;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +28,8 @@ public class VideoTranscodingService {
     private final String mediaPath;
     private final MediaServiceUtils mediaServiceUtils;
     private final MediaVideoRepository mediaVideoRepository;
+    private final VideoResolutionsService videoResolutionsService;
+    private final List<VideoResolution> videoResolutions;
 
 
     private final Map<String, Integer> progressMap = new ConcurrentHashMap<>();
@@ -45,22 +46,9 @@ public class VideoTranscodingService {
 
         int width = getResolution(sourceFile);
         int videoFrames = getFrames(sourceFile);
-
-        List<VideoResolutions> resolutionsEnum = new ArrayList<>();
-        List<String> resolutions = new ArrayList<>();
-        List<Integer> qualitySettings = new ArrayList<>();
-        List<String> resolutionsNames = new ArrayList<>();
-
-
-        for (VideoResolutions resolution : VideoResolutions.values()) {
-            if (width < resolution.getWidth()) {
-                continue;
-            }
-            resolutions.add(resolution.getWidth() + ":-2");
-            qualitySettings.add(resolution.getQuality());
-            resolutionsNames.add(resolution.getName());
-            resolutionsEnum.add(resolution);
-        }
+        System.out.println("videoResolutions: " + videoResolutions);
+        List<VideoResolution> resolutions = this.videoResolutions;
+        resolutions = resolutions.stream().filter(resolution -> resolution.getWidth() <= width).toList();
 
 
         mediaServiceUtils.ensureDirectoryExists(videoPath);
@@ -75,14 +63,14 @@ public class VideoTranscodingService {
         };
 
         for (int i = 0; i < resolutions.size(); i++) {
-            String resolution = resolutions.get(i);
-            String crf = qualitySettings.get(i).toString();
-            String resolutionName = resolutionsNames.get(i);
+            String resolution = resolutions.get(i).getWidth() + ":-2";
+            String crf = String.valueOf(resolutions.get(i).getCrf());
+            String resolutionName = resolutions.get(i).getName();
             String outputFilePath = new File(videoPath, filename.replace(".mp4", "_" + resolutionName + ".mp4")).getAbsolutePath();
 
 
             ffmpegTranscode(sourceFile, resolution, crf, outputFilePath, lineProcessor);
-            mediaVideo.setResolutions(resolutionsEnum);
+            mediaVideo.setResolutions(resolutions);
             mediaVideoRepository.save(mediaVideo);
 
             log.info("Transcoding video {} to {} completed.", filename, resolutionName);
