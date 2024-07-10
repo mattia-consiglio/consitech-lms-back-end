@@ -19,8 +19,8 @@ COPY --from=build /usr/src/app/target/*.jar app.jar
 
 # Installa ffmpeg
 RUN apk update
-RUN apk --upgrade apk-tools
-RUN apk upgrade --available
+# RUN apk --upgrade apk-tools
+RUN apk upgrade
 RUN sync
 RUN reboot
 RUN apk add ffmpeg
