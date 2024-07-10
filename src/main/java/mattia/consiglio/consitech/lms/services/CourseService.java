@@ -1,13 +1,15 @@
 package mattia.consiglio.consitech.lms.services;
 
+import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.*;
+import mattia.consiglio.consitech.lms.entities.enums.PublishStatus;
+import mattia.consiglio.consitech.lms.entities.enums.UserRole;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewCourseDTO;
 import mattia.consiglio.consitech.lms.payloads.NewSeoDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateCourseDTO;
 import mattia.consiglio.consitech.lms.repositories.CourseRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,19 +24,13 @@ import java.util.UUID;
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 import static mattia.consiglio.consitech.lms.utils.SecurityUtils.hasAuthority;
 
+@RequiredArgsConstructor
 @Service
 public class CourseService {
-    @Autowired
-    private CourseRepository courseRepository;
-
-    @Autowired
-    private SeoService seoService;
-
-    @Autowired
-    private LanguageService languageService;
-
-    @Autowired
-    private MediaService mediaService;
+    private final CourseRepository courseRepository;
+    private final SeoService seoService;
+    private final LanguageService languageService;
+    private final MediaService mediaService;
 
     public Course getCourse(UUID uuid) {
         Course course = courseRepository.findById(uuid).orElseThrow(() -> new ResourceNotFoundException("Course", uuid.toString()));
@@ -68,9 +64,9 @@ public class CourseService {
         }
         Language language = languageService.getLanguage(newCourseDTO.mainLanguageId());
         NewSeoDTO newSeoDTO = new NewSeoDTO(newCourseDTO.title(), newCourseDTO.description(), "", newCourseDTO.mainLanguageId());
-        Media thumbnail = null;
+        MediaImage thumbnail = null;
         if (newCourseDTO.thumbnailId() != null) {
-            thumbnail = mediaService.getMedia(newCourseDTO.thumbnailId());
+            thumbnail = (MediaImage) mediaService.getMedia(newCourseDTO.thumbnailId());
         }
         Course course = new Course();
         course.setTitle(newCourseDTO.title());
@@ -79,7 +75,7 @@ public class CourseService {
         course.setMainLanguage(language);
         course.setSeo(seoService.createSeo(newSeoDTO));
         course.setEnrolledStudents(0);
-        course.setThumbnail(thumbnail);
+        course.setThumbnailImage(thumbnail);
         course.setDisplayOrder(courseRepository.count() + 1);
         course.setPublishStatus(PublishStatus.DRAFT);
         course.setCreatedAt(LocalDateTime.now());
@@ -128,9 +124,9 @@ public class CourseService {
 
     public Course updateCourse(UUID id, UpdateCourseDTO courseDTO) {
 
-        Media thumbnail = null;
+        MediaImage thumbnail = null;
         if (courseDTO.thumbnailId() != null) {
-            thumbnail = mediaService.getMedia(courseDTO.thumbnailId());
+            thumbnail = (MediaImage) mediaService.getMedia(courseDTO.thumbnailId());
         }
         Course course = this.getCourse(id);
         if (courseRepository.existsBySlug(courseDTO.slug()) && !course.getSlug().equals(courseDTO.slug())) {
@@ -143,7 +139,7 @@ public class CourseService {
         course.setTitle(courseDTO.title());
         course.setDescription(courseDTO.description());
         course.setSlug(courseDTO.slug());
-        course.setThumbnail(thumbnail);
+        course.setThumbnailImage(thumbnail);
         course.setPublishStatus(PublishStatus.valueOf(courseDTO.publishStatus()));
         return courseRepository.save(course);
     }
@@ -169,6 +165,4 @@ public class CourseService {
         courseRepository.delete(course);
         seoService.deleteSeo(course.getSeo().getId());
     }
-
-
 }

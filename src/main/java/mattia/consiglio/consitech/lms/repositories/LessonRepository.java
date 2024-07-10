@@ -2,7 +2,7 @@ package mattia.consiglio.consitech.lms.repositories;
 
 import mattia.consiglio.consitech.lms.entities.Course;
 import mattia.consiglio.consitech.lms.entities.Lesson;
-import mattia.consiglio.consitech.lms.entities.PublishStatus;
+import mattia.consiglio.consitech.lms.entities.enums.PublishStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

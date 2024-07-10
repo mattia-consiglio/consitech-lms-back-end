@@ -1,12 +1,12 @@
 package mattia.consiglio.consitech.lms.services;
 
+import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.User;
-import mattia.consiglio.consitech.lms.entities.UserRole;
+import mattia.consiglio.consitech.lms.entities.enums.UserRole;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.*;
 import mattia.consiglio.consitech.lms.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,13 +16,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Service
 public class UserService {
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public User createUser(NewUserDTO userDTO) {
         this.UserChecks(userDTO.username(), userDTO.email());

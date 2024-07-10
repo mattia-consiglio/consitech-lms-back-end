@@ -2,6 +2,7 @@ package mattia.consiglio.consitech.lms.payloads;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import mattia.consiglio.consitech.lms.entities.enums.PublishStatus;
 import mattia.consiglio.consitech.lms.validations.ValueOfEnum;
 
 import java.util.UUID;
@@ -17,7 +18,7 @@ public record UpdateCourseDTO(
         @Size(min = 20, max = 150, message = "description must be between 20 and 100 characters")
         String description,
         @NotBlank(message = "publishStatus is required")
-        @ValueOfEnum(enumClass = mattia.consiglio.consitech.lms.entities.PublishStatus.class)
+        @ValueOfEnum(enumClass = PublishStatus.class)
         String publishStatus,
         UUID thumbnailId
 ) {

@@ -1,12 +1,12 @@
 package mattia.consiglio.consitech.lms.services;
 
+import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.EnrolledLesson;
 import mattia.consiglio.consitech.lms.entities.User;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewEnrolledLessonDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateEnrolledLessonsDTO;
 import mattia.consiglio.consitech.lms.repositories.EnrolledLessonRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -14,14 +14,12 @@ import java.util.UUID;
 
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
+@RequiredArgsConstructor
 @Service
 public class EnrolledLessonService {
-    @Autowired
-    private EnrolledLessonRepository enrolledLessonRepository;
-    @Autowired
-    private LessonService lessonService;
-    @Autowired
-    private UserService userService;
+    private final EnrolledLessonRepository enrolledLessonRepository;
+    private final LessonService lessonService;
+    private final UserService userService;
 
     public EnrolledLesson addEnrolledLesson(NewEnrolledLessonDTO newEnrolledLessonDTO, User user) {
         EnrolledLesson enrolledLesson = new EnrolledLesson();

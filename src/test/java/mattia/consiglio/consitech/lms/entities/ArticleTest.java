@@ -31,7 +31,7 @@ class ArticleTest {
         article.setTitle(title);
         article.setSlug(slug);
         article.setDescription(description);
-        article.setThumbnail(thumbnail);
+        article.setThumbnailImage(thumbnail);
         article.setContent(content);
         article.setSeo(seo);
         article.setMainLanguage(language);
@@ -39,7 +39,7 @@ class ArticleTest {
         assertEquals(title, article.getTitle());
         assertEquals(slug, article.getSlug());
         assertEquals(description, article.getDescription());
-        assertEquals(thumbnail, article.getThumbnail());
+        assertEquals(thumbnail, article.getThumbnailImage());
         assertEquals(content, article.getContent());
         assertEquals(seo, article.getSeo());
         assertEquals(language, article.getMainLanguage());

@@ -4,6 +4,7 @@ import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.payloads.UpdateMediaDTO;
 import mattia.consiglio.consitech.lms.services.MediaService;
+import mattia.consiglio.consitech.lms.services.MediaVideoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,11 +13,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.UUID;
+import java.util.Map;
 
 import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL;
-import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 
 @RestController
 @RequestMapping(BASE_URL + "/media")
@@ -24,10 +23,13 @@ public class MediasController {
     @Autowired
     private MediaService mediaService;
 
+    @Autowired
+    private MediaVideoService mediaVideoService;
+
     @PostMapping("/upload")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
-    public Media uploadMedia(@RequestParam("thumbnail") MultipartFile thumbnail) throws IOException {
+    public Media uploadMedia(@RequestParam("thumbnail") MultipartFile thumbnail) {
         return mediaService.uploadMedia(thumbnail);
     }
 
@@ -40,8 +42,19 @@ public class MediasController {
     @GetMapping("{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public Media getMediaById(@PathVariable("id") String id) {
-        UUID uuid = checkUUID(id, "id");
-        return mediaService.getMedia(uuid);
+        return mediaService.getMedia(id);
+    }
+
+    @GetMapping("/{id}/transcode-progress")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Map<String, Integer> getTranscodeProgress(@PathVariable("id") String id) {
+        return mediaVideoService.getTranscodeProgress(id);
+    }
+
+    @PostMapping("/{id}/transcode")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public void transcodeMedia(@PathVariable("id") String id) {
+        mediaService.transcodeVideo(id);
     }
 
     @PutMapping("{id}")

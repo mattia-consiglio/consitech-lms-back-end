@@ -48,6 +48,7 @@ public class JWTFilter extends OncePerRequestFilter {
         String[] excludedPaths = {
                 "/api/v1/auth/**",
                 "/api/v1/public/**",
+                "/media/**"
         };
 
         AntPathMatcher pathMatcher = new AntPathMatcher();

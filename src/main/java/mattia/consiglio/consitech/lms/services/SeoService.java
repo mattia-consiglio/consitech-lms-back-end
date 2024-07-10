@@ -1,22 +1,20 @@
 package mattia.consiglio.consitech.lms.services;
 
+import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.Seo;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewSeoDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateSeoDTO;
 import mattia.consiglio.consitech.lms.repositories.SeoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Service
 public class SeoService {
-    @Autowired
-    private SeoRepository seoRepository;
-
-    @Autowired
-    private LanguageService languageService;
+    private final SeoRepository seoRepository;
+    private final LanguageService languageService;
 
     public Seo createSeo(NewSeoDTO newSeoDTO) {
         return seoRepository.save(new Seo(newSeoDTO.title(), newSeoDTO.description(), newSeoDTO.ldJson(), languageService.getLanguage(newSeoDTO.languageId())));

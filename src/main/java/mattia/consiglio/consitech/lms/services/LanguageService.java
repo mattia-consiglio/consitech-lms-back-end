@@ -1,19 +1,19 @@
 package mattia.consiglio.consitech.lms.services;
 
+import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.Language;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.LanguageDTO;
 import mattia.consiglio.consitech.lms.repositories.LanguageRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Service
 public class LanguageService {
-    @Autowired
-    private LanguageRepository languageRepository;
+    private final LanguageRepository languageRepository;
 
 
     public Language createLanguage(LanguageDTO languageDTO) {

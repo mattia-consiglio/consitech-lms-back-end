@@ -1,16 +1,15 @@
 package mattia.consiglio.consitech.lms.services;
 
-import mattia.consiglio.consitech.lms.entities.Course;
-import mattia.consiglio.consitech.lms.entities.Lesson;
-import mattia.consiglio.consitech.lms.entities.PublishStatus;
-import mattia.consiglio.consitech.lms.entities.UserRole;
+import lombok.RequiredArgsConstructor;
+import mattia.consiglio.consitech.lms.entities.*;
+import mattia.consiglio.consitech.lms.entities.enums.PublishStatus;
+import mattia.consiglio.consitech.lms.entities.enums.UserRole;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.exceptions.ResourceNotFoundException;
 import mattia.consiglio.consitech.lms.payloads.NewLessonDTO;
 import mattia.consiglio.consitech.lms.payloads.NewSeoDTO;
 import mattia.consiglio.consitech.lms.payloads.UpdateLessonDTO;
 import mattia.consiglio.consitech.lms.repositories.LessonRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,21 +24,14 @@ import java.util.UUID;
 import static mattia.consiglio.consitech.lms.utils.GeneralChecks.checkUUID;
 import static mattia.consiglio.consitech.lms.utils.SecurityUtils.hasAuthority;
 
+@RequiredArgsConstructor
 @Service
 public class LessonService {
-    @Autowired
-    private LessonRepository lessonRepository;
-    @Autowired
-    private MediaService mediaService;
-    @Autowired
-    private CourseService courseService;
-    @Autowired
-    private LanguageService languageService;
-    @Autowired
-    private SeoService seoService;
-
-    @Autowired
-    private UserService userService;
+    private final LessonRepository lessonRepository;
+    private final MediaService mediaService;
+    private final CourseService courseService;
+    private final LanguageService languageService;
+    private final SeoService seoService;
 
 
     public Lesson createLesson(NewLessonDTO lessonDTO) {
@@ -49,14 +41,16 @@ public class LessonService {
         NewSeoDTO newSeoDTO = new NewSeoDTO(lessonDTO.title(), lessonDTO.description(), "", lessonDTO.mainLanguageId());
         Lesson lesson = new Lesson();
         if (lessonDTO.thumbnailId() != null) {
-            lesson.setThumbnail(mediaService.getMedia(lessonDTO.thumbnailId()));
+            lesson.setThumbnailImage((MediaImage) mediaService.getMedia(lessonDTO.thumbnailId()));
+        }
+        if (lessonDTO.videoId() != null) {
+            lesson.setVideo((MediaVideo) mediaService.getMedia(lessonDTO.videoId()));
         }
         lesson.setTitle(lessonDTO.title());
         lesson.setSlug(lessonDTO.slug());
         lesson.setDescription(lessonDTO.description());
         lesson.setMainLanguage(languageService.getLanguage(lessonDTO.mainLanguageId()));
         lesson.setLiveEditor(lessonDTO.liveEditor());
-        lesson.setVideoId(lessonDTO.videoId());
         lesson.setContent(lessonDTO.content());
         lesson.setPublishStatus(PublishStatus.DRAFT);
         lesson.setDisplayOrder(lessonRepository.count() + 1);
@@ -106,21 +100,23 @@ public class LessonService {
                 requiredField.add("content");
             }
             if (lessonDTO.thumbnailId() == null) {
-                requiredField.add("thumbnail");
+                requiredField.add("thumbnailImage");
             }
 
         }
         if (lessonDTO.thumbnailId() != null) {
-            lesson.setThumbnail(mediaService.getMedia(lessonDTO.thumbnailId()));
+            lesson.setThumbnailImage((MediaImage) mediaService.getMedia(lessonDTO.thumbnailId()));
         }
         if (lesson.getCreatedAt() == null) {
             lesson.setCreatedAt(LocalDateTime.now());
+        }
+        if (lessonDTO.videoId() != null) {
+            lesson.setVideo((MediaVideo) mediaService.getMedia(lessonDTO.videoId()));
         }
         lesson.setTitle(lessonDTO.title());
         lesson.setSlug(lessonDTO.slug());
         lesson.setDescription(lessonDTO.description());
         lesson.setLiveEditor(lessonDTO.liveEditor());
-        lesson.setVideoId(lessonDTO.videoId());
         lesson.setContent(lessonDTO.content());
         lesson.setPublishStatus(PublishStatus.valueOf(lessonDTO.publishStatus()));
         lesson.setCourse(courseService.getCourse(lessonDTO.courseId()));

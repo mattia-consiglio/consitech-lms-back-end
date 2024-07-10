@@ -1,7 +1,7 @@
 package mattia.consiglio.consitech.lms.repositories;
 
 import mattia.consiglio.consitech.lms.entities.Course;
-import mattia.consiglio.consitech.lms.entities.PublishStatus;
+import mattia.consiglio.consitech.lms.entities.enums.PublishStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

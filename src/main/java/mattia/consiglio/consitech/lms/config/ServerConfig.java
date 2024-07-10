@@ -1,25 +1,39 @@
 package mattia.consiglio.consitech.lms.config;
 
 
-import com.cloudinary.Cloudinary;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
+import mattia.consiglio.consitech.lms.entities.VideoResolution;
+import mattia.consiglio.consitech.lms.services.VideoResolutionsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
+@RequiredArgsConstructor
 @Configuration
 public class ServerConfig {
+    private final VideoResolutionsService videoResolutionsService;
+
+    @Bean("allowedHosts")
+    public List<String> allowedHosts() {
+        return Arrays.asList("http://localhost:3000", "https://lms.consitech.it", "https://consitech-lms-front-end.vercel.app");
+    }
+
+    @Bean("mediaPath")
+    public String mediaPath() {
+        String rootPath = System.getProperty("user.dir");
+        return rootPath + File.separator + "media";
+    }
+
+    @Bean("transcodePath")
+    public String transcodePath() {
+        return mediaPath() + File.separator + "transcode";
+    }
 
     @Bean
-    public Cloudinary cloudinaryUploader(@Value("${cloudinary.name}") String name,
-                                         @Value("${cloudinary.key}") String key,
-                                         @Value("${cloudinary.secret}") String secret) {
-        Map<String, String> configuration = new HashMap<>();
-        configuration.put("cloud_name", name);
-        configuration.put("api_key", key);
-        configuration.put("api_secret", secret);
-        return new Cloudinary(configuration);
+    public List<VideoResolution> videoResolutions() {
+        return videoResolutionsService.getVideoResolutions();
     }
 }
