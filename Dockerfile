@@ -9,7 +9,7 @@ COPY src /usr/src/app/src
 RUN mvn -f /usr/src/app/pom.xml clean package -DskipTests
 
 # Fase di esecuzione
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-alpine
 
 # Espone la porta 8080 per l'applicazione
 EXPOSE 8080
@@ -18,9 +18,12 @@ EXPOSE 8080
 COPY --from=build /usr/src/app/target/*.jar app.jar
 
 # Installa ffmpeg
-RUN apt update
-RUN apt upgrade
-RUN apt intall ffmpeg
+RUN apk update
+RUN apk --upgrade apk-tools
+RUN apk upgrade --available
+RUN sync
+RUN reboot
+RUN apk add ffmpeg
 
 # Comando per eseguire l'applicazione
 ENTRYPOINT ["java","-jar","/app.jar"]
