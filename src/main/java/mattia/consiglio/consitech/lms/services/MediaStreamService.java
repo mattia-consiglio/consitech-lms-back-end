@@ -2,6 +2,7 @@ package mattia.consiglio.consitech.lms.services;
 
 import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.Media;
+import mattia.consiglio.consitech.lms.entities.VideoResolution;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -17,19 +18,42 @@ import java.net.URLConnection;
 public class MediaStreamService {
     private final MediaService mediaService;
     private final MediaServiceUtils mediaServiceUtils;
+    private final VideoResolutionsService videoResolutionsService;
 
     public ResponseEntity<InputStreamResource> getMediaStream(String filename) {
         if (!mediaServiceUtils.isValidFilename(filename)) {
             throw new BadRequestException("Invalid filename");
         }
 
-        Media media = mediaService.getMediaByFilename(filename);
-        if (media == null) {
+
+        if (filename == null) {
             return null;
         }
 
+        VideoResolution videoResolution = null;
+        String newFilename = filename;
+        if (filename.endsWith(".mp4")) {
+            if (filename.contains("_")) {
+                String videoResolutionString = filename.substring(filename.lastIndexOf("_") + 1).replace(".mp4", "");
+                videoResolution = videoResolutionsService.getVideoResolution(videoResolutionString);
+                newFilename = filename.substring(0, filename.lastIndexOf("_")).concat(".mp4");
+            } else {
+                throw new BadRequestException("Invalid filename. It must contain a video resolution");
+            }
+        }
 
-        File file = mediaServiceUtils.getMediaFile(media);
+        Media media = mediaService.getMediaByFilename(newFilename);
+        if (media == null) {
+            return null;
+        }
+        File file;
+        if (videoResolution != null) {
+            file = mediaServiceUtils.getMediaFile(media, videoResolution);
+        } else {
+            file = mediaServiceUtils.getMediaFile(media);
+        }
+
+        System.out.println("File: " + file.getAbsolutePath());
 
         InputStream inputStream;
 
@@ -42,8 +66,14 @@ public class MediaStreamService {
         String mimeType;
         try {
             mimeType = URLConnection.guessContentTypeFromStream(inputStream);
+            System.out.println("MIME type: " + mimeType);
         } catch (IOException e) {
             throw new BadRequestException("Error while guessing MIME type");
+        }
+        System.out.println("MIME type: " + mimeType);
+        
+        if (mimeType == null && filename.endsWith(".mp4")) {
+            mimeType = "video/mp4";
         }
 
         HttpHeaders headers = new HttpHeaders();

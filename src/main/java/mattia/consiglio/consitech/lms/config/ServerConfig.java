@@ -1,35 +1,20 @@
 package mattia.consiglio.consitech.lms.config;
 
 
-import com.cloudinary.Cloudinary;
 import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.VideoResolution;
 import mattia.consiglio.consitech.lms.services.VideoResolutionsService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @Configuration
 public class ServerConfig {
     private final VideoResolutionsService videoResolutionsService;
-
-    @Bean
-    public Cloudinary cloudinaryUploader(@Value("${cloudinary.name}") String name,
-                                         @Value("${cloudinary.key}") String key,
-                                         @Value("${cloudinary.secret}") String secret) {
-        Map<String, String> configuration = new HashMap<>();
-        configuration.put("cloud_name", name);
-        configuration.put("api_key", key);
-        configuration.put("api_secret", secret);
-        return new Cloudinary(configuration);
-    }
 
     @Bean("allowedHosts")
     public List<String> allowedHosts() {

@@ -17,6 +17,10 @@ public class VideoResolutionsService {
         return videoResolutionsRepository.findAll();
     }
 
+    public VideoResolution getVideoResolution(String videoResolutionString) {
+        return videoResolutionsRepository.findByName(videoResolutionString);
+    }
+
     public VideoResolution createVideoResolution(VideoResolution videoResolution) {
         return videoResolutionsRepository.save(videoResolution);
     }

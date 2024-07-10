@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VideoResolutionsRepository extends JpaRepository<VideoResolution, String> {
+    VideoResolution findByName(String videoResolutionString);
 }
