@@ -25,7 +25,7 @@ jobs:
       - name: Start new container
         run: |
           docker run -d --name consitech-lms-backend-dev-container \
-            -p 8082:8082 \
+            -p 8082:8080 \
             --network dev-network \
             --restart unless-stopped \
             -e SERVER_PORT=${{ secrets.SERVER_PORT_DEV }} \
