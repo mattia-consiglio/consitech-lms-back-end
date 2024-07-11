@@ -11,17 +11,29 @@ ALTER TABLE IF EXISTS public.media
   ADD COLUMN type media_type;
 
 --update media table from old type values
-UPDATE public.media
-SET type = 'IMAGE'
-WHERE type_old = 0;
+DO $$
+    BEGIN
+        IF EXISTS
+            ( SELECT 1
+              FROM   information_schema.tables
+              WHERE  table_schema = 'public'
+              AND    table_name = 'media'
+            )
+        THEN
+            UPDATE public.media
+            SET type = 'IMAGE'
+            WHERE type_old = 0;
+            
+            UPDATE public.media
+            SET type = 'VIDEO'
+            WHERE type_old = 1;
 
-UPDATE public.media
-SET type = 'VIDEO'
-WHERE type_old = 1;
-
-UPDATE public.media
-SET type = 'AUDIO'
-WHERE type_old = 2;
+            UPDATE public.media
+            SET type = 'AUDIO'
+            WHERE type_old = 2;
+        END IF ;
+    END
+$$ ;
 
 ALTER TABLE IF EXISTS public.media
   DROP COLUMN IF EXISTS type_old;
@@ -39,37 +51,3 @@ CREATE TYPE public.user_role
 
 ALTER TABLE IF EXISTS public.users
   ALTER COLUMN role TYPE user_role using role::user_role;
-
----------------------------------------- VIDEOS ----------------------------------------
-CREATE TYPE public.video_resolution
-  AS ENUM ('FOUR_K', 'TWO_K', 'FHD', 'HD', 'SD', 'LD');
-
-CREATE OR REPLACE FUNCTION int_to_video_resolution(int) RETURNS video_resolution AS $$
-BEGIN
-  CASE $1
-    WHEN 0 THEN RETURN 'FOUR_K';
-    WHEN 1 THEN RETURN 'TWO_K';
-    WHEN 2 THEN RETURN 'FHD';
-    WHEN 3 THEN RETURN 'HD';
-    WHEN 4 THEN RETURN 'SD';
-    WHEN 5 THEN RETURN 'LD';
-    ELSE RAISE EXCEPTION 'Invalid integer value: %', $1;
-  END CASE;
-END;
-$$ LANGUAGE plpgsql;
-
--- Add a new column for video_resolution[]
-ALTER TABLE public.media_videos ADD COLUMN resolutions_new video_resolution[];
-
--- Populate the new column by converting the values
-UPDATE public.media_videos
-SET resolutions_new = ARRAY(
-  SELECT int_to_video_resolution(x)
-  FROM unnest(resolutions) AS x
-);
-
-
--- Remove the old column and rename the new column
-ALTER TABLE public.media_videos DROP COLUMN resolutions;
-ALTER TABLE public.media_videos RENAME COLUMN resolutions_new TO resolutions;
-
