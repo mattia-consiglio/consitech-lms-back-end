@@ -18,13 +18,14 @@ import java.util.List;
 @Table(name = "media_videos")
 public class MediaVideo extends Media {
     private double duration;
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany
     @JoinTable(
             name = "MediaVideo_VideoResolutions",
             joinColumns = {@JoinColumn(name = "media_video_id")},
             inverseJoinColumns = {@JoinColumn(name = "video_resolution_id")}
     )
     private List<VideoResolution> resolutions;
+
     @ManyToOne
     @JoinColumn(name = "thumbnail_id")
     private MediaImage thumbnail;
