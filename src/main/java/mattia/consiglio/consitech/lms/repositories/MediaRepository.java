@@ -1,6 +1,9 @@
 package mattia.consiglio.consitech.lms.repositories;
 
 import mattia.consiglio.consitech.lms.entities.Media;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,4 +18,6 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
     List<Media> findByParentId(UUID parentId);
 
     Optional<Media> findByFilename(String filename);
+
+    Page<Media> findAll(Specification<Media> spec, Pageable pageable);
 }

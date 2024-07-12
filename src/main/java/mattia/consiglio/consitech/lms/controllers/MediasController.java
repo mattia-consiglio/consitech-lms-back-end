@@ -1,11 +1,11 @@
 package mattia.consiglio.consitech.lms.controllers;
 
+import lombok.RequiredArgsConstructor;
 import mattia.consiglio.consitech.lms.entities.Media;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
 import mattia.consiglio.consitech.lms.payloads.UpdateMediaDTO;
 import mattia.consiglio.consitech.lms.services.MediaService;
 import mattia.consiglio.consitech.lms.services.MediaVideoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
@@ -19,12 +19,10 @@ import static mattia.consiglio.consitech.lms.controllers.BaseController.BASE_URL
 
 @RestController
 @RequestMapping(BASE_URL + "/media")
+@RequiredArgsConstructor
 public class MediasController {
-    @Autowired
-    private MediaService mediaService;
-
-    @Autowired
-    private MediaVideoService mediaVideoService;
+    private final MediaService mediaService;
+    private final MediaVideoService mediaVideoService;
 
     @PostMapping("/upload")
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -35,8 +33,12 @@ public class MediasController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Iterable<Media> getMedia(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size, @RequestParam(defaultValue = "uploadedAt") String sort, @RequestParam(defaultValue = "desc") String direction) {
-        return mediaService.getAllMedia(page, size, sort, direction);
+    public Iterable<Media> getMedia(@RequestParam(defaultValue = "0") int page,
+                                    @RequestParam(defaultValue = "20") int size,
+                                    @RequestParam(defaultValue = "uploadedAt") String sort,
+                                    @RequestParam(defaultValue = "desc") String direction,
+                                    @RequestParam(required = false) String type) {
+        return mediaService.getAllMedia(page, size, sort, direction, type);
     }
 
     @GetMapping("{id}")

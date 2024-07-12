@@ -1,5 +1,6 @@
 package mattia.consiglio.consitech.lms.services;
 
+import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -342,15 +344,36 @@ public class MediaService {
         });
     }
 
-    public Page<Media> getAllMedia(int page, int size, String sort, String direction) {
+    public Page<Media> getAllMedia(int page, int size, String sort, String direction, String type) {
         Sort.Direction sortDirection = Sort.Direction.ASC; // Default sort direction
+
 
         if (direction != null && direction.equalsIgnoreCase("desc")) {
             sortDirection = Sort.Direction.DESC;
         }
 
+        Specification<Media> mediaSpecification = getMediaSpecification(type);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
-        return mediaRepository.findAll(pageable);
+        return mediaRepository.findAll(mediaSpecification, pageable);
+    }
+
+    public Specification<Media> getMediaSpecification(String type) {
+
+        return (root, query, cb) -> {
+            Predicate p = cb.conjunction();
+
+            if (type != null) {
+                MediaType mediaType;
+                try {
+                    mediaType = MediaType.valueOf(type);
+                } catch (IllegalArgumentException e) {
+                    throw new BadRequestException("Invalid media type: " + type);
+                }
+                p = cb.and(p, cb.equal(root.get("type"), mediaType));
+
+            }
+            return p;
+        };
     }
 
     public void syncMedia() {
