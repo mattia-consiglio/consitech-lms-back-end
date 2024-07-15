@@ -3,6 +3,7 @@ package mattia.consiglio.consitech.lms.payloads;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import mattia.consiglio.consitech.lms.validations.ValidUUID;
 
 import java.util.UUID;
 
@@ -20,6 +21,7 @@ public record NewLessonDTO(
         @NotNull(message = "mainLanguageId is required")
         UUID mainLanguageId,
         String liveEditor,
+        @ValidUUID
         String videoId,
         String content,
         @NotNull(message = "courseId is required")

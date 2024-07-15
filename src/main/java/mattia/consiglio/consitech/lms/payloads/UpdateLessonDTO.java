@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import mattia.consiglio.consitech.lms.entities.enums.PublishStatus;
+import mattia.consiglio.consitech.lms.validations.ValidUUID;
 import mattia.consiglio.consitech.lms.validations.ValueOfEnum;
 
 import java.util.UUID;
@@ -23,6 +24,7 @@ public record UpdateLessonDTO(
         String publishStatus,
         UUID thumbnailId,
         String liveEditor,
+        @ValidUUID
         String videoId,
         String content,
         @NotNull(message = "courseId is required")
