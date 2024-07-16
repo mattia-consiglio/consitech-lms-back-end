@@ -68,7 +68,6 @@ public class VideoTranscodingService {
             String resolutionName = resolutions.get(i).getName();
             String outputFilePath = new File(videoPath, filename.replace(".mp4", "_" + resolutionName + ".mp4")).getAbsolutePath();
 
-
             ffmpegTranscode(sourceFile, resolution, crf, outputFilePath, lineProcessor);
             mediaVideo.setResolutions(resolutions);
             mediaVideoRepository.save(mediaVideo);
@@ -90,6 +89,7 @@ public class VideoTranscodingService {
                 "-c:a", "aac",
                 "-nostats",
                 "-progress", "-",
+                "-movflags", "faststart",
                 "-hide_banner",
                 outputFilePath};
 

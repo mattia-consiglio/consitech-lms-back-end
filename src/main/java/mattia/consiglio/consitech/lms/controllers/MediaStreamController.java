@@ -1,5 +1,6 @@
 package mattia.consiglio.consitech.lms.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import mattia.consiglio.consitech.lms.services.MediaStreamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -16,7 +17,7 @@ public class MediaStreamController {
     private MediaStreamService mediaStreamService;
 
     @GetMapping("{filename}")
-    public ResponseEntity<InputStreamResource> getMediaStream(@PathVariable("filename") String filename) {
-        return mediaStreamService.getMediaStream(filename);
+    public ResponseEntity<InputStreamResource> getMediaStream(@PathVariable("filename") String filename, HttpServletRequest request) {
+        return mediaStreamService.getMediaStream(filename, request);
     }
 }
