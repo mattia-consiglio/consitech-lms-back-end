@@ -23,18 +23,18 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public User createUser(NewUserDTO userDTO) {
-        this.UserChecks(userDTO.username(), userDTO.email());
+        this.userChecks(userDTO.username(), userDTO.email());
         User user = new User(userDTO.username(), userDTO.email(), passwordEncoder.encode(userDTO.password()), UserRole.USER);
         return userRepository.save(user);
     }
 
     public User createUser(EditUserDTO userDTO) {
-        this.UserChecks(userDTO.username(), userDTO.email());
+        this.userChecks(userDTO.username(), userDTO.email());
         User user = new User(userDTO.username(), userDTO.email(), passwordEncoder.encode(userDTO.password()), UserRole.valueOf(userDTO.role()));
         return userRepository.save(user);
     }
 
-    public void UserChecks(String username, String email) {
+    public void userChecks(String username, String email) {
         if (userRepository.existsByUsernameOrEmail(username, email)) {
             throw new BadRequestException("Username and email already in use");
         } else if (userRepository.existsByUsername(username)) {
@@ -42,6 +42,14 @@ public class UserService {
         } else if (userRepository.existsByEmail(email)) {
             throw new BadRequestException("Email already in use");
         }
+    }
+
+    public IsAvailableDTO isUsernameAvailable(String username, User user) {
+        return new IsAvailableDTO(userRepository.isUsernameAvailable(username, user));
+    }
+
+    public IsAvailableDTO isEmailAvailable(String email, User user) {
+        return new IsAvailableDTO(userRepository.isEmailAvailable(email, user));
     }
 
     public User getUserByUsername(String username) {
@@ -65,21 +73,32 @@ public class UserService {
         return userRepository.countByRole(role);
     }
 
-    public User updateUser(User user, UserUpdateDTO userDTO) {
+    public User updateUser(User user, UserFullUpdateDTO userDTO, Boolean updatePassword) {
         if (userRepository.existsByUsername(userDTO.username())) {
             throw new BadRequestException("Username already in use");
         }
         if (userRepository.existsByEmail(userDTO.email())) {
             throw new BadRequestException("Email already in use");
         }
-        this.PasswordCheck(user, userDTO.newPassword(), userDTO.oldPassword(), userDTO.username(), userDTO.email());
+        if (updatePassword) {
+            this.PasswordCheck(user, userDTO.newPassword(), userDTO.oldPassword(), userDTO.username(), userDTO.email());
+            user.setPassword(passwordEncoder.encode(userDTO.newPassword()));
+        }
         user.setUsername(userDTO.username());
         user.setEmail(userDTO.email());
-        user.setPassword(passwordEncoder.encode(userDTO.newPassword()));
         return userRepository.save(user);
     }
 
-    public User updateUser(UUID userId, UserUpdateDTO userDTO) {
+    public User updateUser(User user, UserFullUpdateDTO userDTO) {
+        return this.updateUser(user, userDTO, true);
+    }
+
+    public User updateUser(User user, UserPartialUpdateDTO userDTO) {
+        UserFullUpdateDTO userDTO1 = new UserFullUpdateDTO(userDTO.username(), "", "", userDTO.email());
+        return this.updateUser(user, userDTO1, false);
+    }
+
+    public User updateUser(UUID userId, UserFullUpdateDTO userDTO) {
         User user = this.getUserById(userId);
         return this.updateUser(user, userDTO);
     }

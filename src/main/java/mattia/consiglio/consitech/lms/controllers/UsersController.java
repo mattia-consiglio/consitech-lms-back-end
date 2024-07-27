@@ -2,9 +2,7 @@ package mattia.consiglio.consitech.lms.controllers;
 
 import mattia.consiglio.consitech.lms.entities.User;
 import mattia.consiglio.consitech.lms.exceptions.BadRequestException;
-import mattia.consiglio.consitech.lms.payloads.UserPasswordDTO;
-import mattia.consiglio.consitech.lms.payloads.UserRoleDTO;
-import mattia.consiglio.consitech.lms.payloads.UserUpdateDTO;
+import mattia.consiglio.consitech.lms.payloads.*;
 import mattia.consiglio.consitech.lms.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -44,6 +42,16 @@ public class UsersController {
         return userService.getUsers(page, size, sort);
     }
 
+    @GetMapping("/username/{username}/available")
+    public IsAvailableDTO isUsernameAvailable(@AuthenticationPrincipal User user, @PathVariable("username") String username) {
+        return userService.isUsernameAvailable(username, user);
+    }
+
+    @GetMapping("/email/{email}/available")
+    public IsAvailableDTO isEmailAvailable(@AuthenticationPrincipal User user, @PathVariable("email") String email) {
+        return userService.isEmailAvailable(email, user);
+    }
+
     @PutMapping("/{id}/role")
     @PreAuthorize("hasAuthority('ADMIN')")
     public User updateUser(@PathVariable("id") String id, @Validated @RequestBody UserRoleDTO userRoleDTO, BindingResult validation) {
@@ -62,8 +70,16 @@ public class UsersController {
         return userService.updateUserPassword(user, userPasswordDTO);
     }
 
+    @PutMapping("/me/full")
+    public User updateMe(@AuthenticationPrincipal User user, @Validated @RequestBody UserFullUpdateDTO userDto, BindingResult validation) {
+        if (validation.hasErrors()) {
+            throw new BadRequestException("Invalid data", validation.getAllErrors());
+        }
+        return userService.updateUser(user, userDto);
+    }
+
     @PutMapping("/me")
-    public User updateMe(@AuthenticationPrincipal User user, @Validated @RequestBody UserUpdateDTO userDto, BindingResult validation) {
+    public User updateMe(@AuthenticationPrincipal User user, @Validated @RequestBody UserPartialUpdateDTO userDto, BindingResult validation) {
         if (validation.hasErrors()) {
             throw new BadRequestException("Invalid data", validation.getAllErrors());
         }
