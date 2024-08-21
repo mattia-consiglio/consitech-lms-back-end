@@ -18,7 +18,10 @@ public class ServerConfig {
 
     @Bean("allowedHosts")
     public List<String> allowedHosts() {
-        return Arrays.asList("http://localhost:3000", "https://lms.consitech.it", "https://consitech-lms-front-end.vercel.app", "https://consitech-lms-front-end-git-develop-mattias-projects-67143469.vercel.app/");
+        return Arrays.asList("http://localhost:3000",
+                "https://lms.consitech.it",
+                "https://consitech-lms-front-end.vercel.app",
+                "https://consitech-lms-front-end-git-develop-mattias-projects-67143469.vercel.app");
     }
 
     @Bean("mediaPath")
