@@ -43,4 +43,5 @@ jobs:
             -e CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
             -e CLOUDINARY_KEY=${{ secrets.CLOUDINARY_KEY }} \
             -e CLOUDINARY_SECRET=${{ secrets.CLOUDINARY_SECRET }} \
+            -v /var/lib/consitech-lms/media-develop:/app/media \
             consitech-lms-backend-dev

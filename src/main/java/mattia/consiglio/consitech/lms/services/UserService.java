@@ -74,10 +74,10 @@ public class UserService {
     }
 
     public User updateUser(User user, UserFullUpdateDTO userDTO, Boolean updatePassword) {
-        if (userRepository.existsByUsername(userDTO.username())) {
+        if (!userRepository.isUsernameAvailable(userDTO.username(), user)) {
             throw new BadRequestException("Username already in use");
         }
-        if (userRepository.existsByEmail(userDTO.email())) {
+        if (!userRepository.isEmailAvailable(userDTO.email(), user)) {
             throw new BadRequestException("Email already in use");
         }
         if (updatePassword) {
