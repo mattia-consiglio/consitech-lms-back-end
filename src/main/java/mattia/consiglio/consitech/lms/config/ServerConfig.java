@@ -27,7 +27,10 @@ public class ServerConfig {
     @Bean("mediaPath")
     public String mediaPath() {
         String rootPath = System.getProperty("user.dir");
-        String mediaPath = rootPath + File.separator + "media";
+        if (!rootPath.endsWith(File.separator)) {
+            rootPath += File.separator;
+        }
+        String mediaPath = rootPath + "mediaFiles";
         System.out.println("mediaPath: " + mediaPath);
         return mediaPath;
     }

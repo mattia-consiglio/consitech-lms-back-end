@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version>
+        <version>3.3.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>mattia.consiglio</groupId>
@@ -14,7 +14,7 @@
     <name>consitech.lms</name>
     <description>Consitech LMS REST API</description>
     <properties>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -64,12 +64,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.cloudinary</groupId>
-            <artifactId>cloudinary-http45</artifactId>
-            <version>1.38.0</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
