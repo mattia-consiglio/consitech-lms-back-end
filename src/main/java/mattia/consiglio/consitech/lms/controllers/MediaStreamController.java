@@ -18,7 +18,6 @@ public class MediaStreamController {
 
     @GetMapping("{filename}")
     public ResponseEntity<InputStreamResource> getMediaStream(@PathVariable("filename") String filename, HttpServletRequest request) {
-        String sanitizedFilename = filename.replaceAll("[^a-zA-Z0-9.]", "_");
-        return mediaStreamService.getMediaStream(sanitizedFilename, request);
+        return mediaStreamService.getMediaStream(filename, request);
     }
 }

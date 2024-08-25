@@ -28,6 +28,11 @@ public class MediaServiceUtils {
     @Qualifier("mediaPath")
     private final String mediaPath;
 
+    /**
+     * Ensures that a directory exists at the specified path.
+     *
+     * @param directoryPath the path to the directory to be checked
+     */
     public void ensureDirectoryExists(String directoryPath) {
         File directory = new File(directoryPath);
         if (!directory.exists()) {
@@ -35,11 +40,23 @@ public class MediaServiceUtils {
         }
     }
 
+    /**
+     * Retrieves a Media object from the database based on the provided id.
+     *
+     * @param id a string representation of the media id
+     * @return the Media object associated with the provided id
+     */
     public Media getMedia(String id) {
         UUID uuid = checkUUID(id, "media id");
         return this.getMedia(uuid);
     }
 
+    /**
+     * Retrieves a Media object from the database based on the provided id.
+     *
+     * @param id a unique identifier for the media
+     * @return the Media object associated with the provided id
+     */
     public Media getMedia(UUID id) {
         if (id == null) {
             throw new BadRequestException("Media id cannot be null");
@@ -68,6 +85,14 @@ public class MediaServiceUtils {
         return getMediaFile(media, ignoreNotFound, null);
     }
 
+    /**
+     * Retrieves a file based on the provided media object, ignoring not found errors if specified.
+     *
+     * @param media          the media object containing the file information
+     * @param ignoreNotFound whether to ignore not found errors
+     * @param resolution     the video resolution, if applicable
+     * @return the file associated with the provided media object
+     */
     private File getFile(Media media, boolean ignoreNotFound, VideoResolution resolution) {
         String filename = media.getFilename();
         String directoryPath = media.getType() == MediaType.VIDEO ? getVideoPath(filename) : mediaPath;

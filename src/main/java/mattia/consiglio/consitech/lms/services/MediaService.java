@@ -57,6 +57,14 @@ public class MediaService {
     @Qualifier("mediaPath")
     private final String mediaPath;
 
+    /**
+     * Uploads a media file (image or video) to the server and returns the corresponding media entity.
+     *
+     * @param file The multipart file to be uploaded.
+     * @return The uploaded media entity.
+     * @throws BadRequestException If the file is empty, the file name is invalid, or the file extension is invalid.
+     * @throws RuntimeException    If an error occurs while calculating the file hash or saving the file.
+     */
     public Media uploadMedia(MultipartFile file) {
         if (file.isEmpty()) {
             throw new BadRequestException("Invalid file content");
@@ -68,7 +76,7 @@ public class MediaService {
         }
 
         // Sanitize the filename
-        String sanitizedFilename = originalFilename.replaceAll("[^a-zA-Z0-9\\._]+", "-");
+        String sanitizedFilename = originalFilename.replaceAll("[^a-zA-Z0-9._]+", "-");
 
         // Extract file extension
         String fileExtension = sanitizedFilename.substring(sanitizedFilename.lastIndexOf(".") + 1);
@@ -90,11 +98,12 @@ public class MediaService {
                 .replaceAll("^-", "");
 
 
-        String hash = null;
+        String hash;
+
         try {
             hash = calculateHash(file);
         } catch (IOException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new BadRequestException("Error calculating file hash");
         }
 
         MediaDifference mediaDifference = checkFileDifference(hash, filename, fileExtension);
@@ -109,8 +118,8 @@ public class MediaService {
         String url = getHostUrl() + "/media/" + newFilename;
 
 
-        switch (mediaType) {
-            case IMAGE:
+        return switch (mediaType) {
+            case IMAGE -> {
                 MediaImage mediaImage = new MediaImage.Builder()
                         .url(url)
                         .type(mediaType)
@@ -120,9 +129,9 @@ public class MediaService {
                         .filename(newFilename)
                         .parentId(mediaDifference.getParentId())
                         .build();
-                return mediaImageService.uploadImage(mediaImage);
-
-            case VIDEO:
+                yield mediaImageService.uploadImage(mediaImage);
+            }
+            case VIDEO -> {
                 MediaVideo mediaVideo = new MediaVideo.Builder().url(url)
                         .type(mediaType)
                         .alt(alt)
@@ -131,18 +140,36 @@ public class MediaService {
                         .filename(newFilename)
                         .parentId(mediaDifference.getParentId())
                         .build();
-                return mediaVideoService.uploadVideo(mediaVideo);
-            default:
-                throw new BadRequestException("Invalid media type");
-        }
+                yield mediaVideoService.uploadVideo(mediaVideo);
+            }
+            default -> throw new BadRequestException("Invalid media type");
+        };
 
     }
 
+    /**
+     * Saves a file to the file system with the specified filename and media type.
+     *
+     * @param file        The MultipartFile to be saved.
+     * @param newFilename The new filename to be used for the saved file.
+     * @param mediaType   The media type of the file (e.g. IMAGE, VIDEO).
+     * @throws RuntimeException          If an IOException occurs during the file write operation.
+     * @throws ResourceNotFoundException If the saved file does not exist after the write operation.
+     */
     public void saveFile(MultipartFile file, String newFilename, MediaType mediaType) {
 
         String destinationPath = mediaType == MediaType.VIDEO ? mediaServiceUtils.getVideoPath(newFilename) : mediaPath;
         mediaServiceUtils.ensureDirectoryExists(destinationPath);
 
+        File mediaFile = getMediaFile(file, newFilename, destinationPath);
+
+        // Check if the file exists
+        if (!mediaFile.exists()) {
+            throw new ResourceNotFoundException("File does not exist: " + mediaFile.getAbsolutePath());
+        }
+    }
+
+    private static File getMediaFile(MultipartFile file, String newFilename, String destinationPath) {
         File mediaFile = new File(destinationPath, newFilename);
         try (InputStream inputStream = file.getInputStream();
              FileOutputStream outputStream = new FileOutputStream(mediaFile)) {
@@ -152,13 +179,9 @@ public class MediaService {
                 outputStream.write(buffer, 0, bytesRead);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new BadRequestException("Error saving file");
         }
-
-        // Check if the file exists
-        if (!mediaFile.exists()) {
-            throw new ResourceNotFoundException("File does not exist: " + mediaFile.getAbsolutePath());
-        }
+        return mediaFile;
     }
 
     @Getter
@@ -176,63 +199,67 @@ public class MediaService {
         }
     }
 
+    private static final String INDEX_KEY = "index";
+    private static final String FOUND_KEY = "found";
+
+
     private MediaDifference checkFileDifference(String hash, String filename, String fileExtension) {
-        boolean isDifferent = true;
         List<Media> mediaList = mediaRepository.findByHashOrderByFilenameDesc(hash);
 
-        if (mediaList.isEmpty()) return new MediaDifference(isDifferent, filename + "." + fileExtension);
+        // Check if the file is already in the database
+        if (mediaList.isEmpty()) {
+            return createMediaDifference(filename, fileExtension);
+        }
 
         Media parentMedia = mediaList.stream().filter(m -> m.getParentId() == null).findFirst().orElse(null);
-        if (parentMedia == null) return new MediaDifference(isDifferent, filename + "." + fileExtension);
-
-        isDifferent = false;
-
-        String regex = "-(\\d+)\\." + fileExtension + "$|\\." + fileExtension + "$";
-
-
-        Map<String, Integer> mediaIndex = getLastMediaIndex(mediaList, regex, filename, isDifferent, fileExtension, parentMedia);
-
-        if (mediaIndex.get("index") == 0 && mediaIndex.get("found") == 0) {
-            return new MediaDifference(isDifferent, filename + "." + fileExtension, parentMedia.getId());
+        if (parentMedia == null) {
+            return createMediaDifference(filename, fileExtension);
         }
 
-        return new MediaDifference(isDifferent, filename + "-" + mediaIndex.get("index") + "." + fileExtension, parentMedia.getId());
+        Map<String, Integer> mediaIndex = getLastMediaIndex(mediaList, filename, fileExtension);
+
+
+        if (mediaIndex.get(INDEX_KEY) == 0 && mediaIndex.get(FOUND_KEY) == 0) {
+            return new MediaDifference(false, filename + "." + fileExtension, parentMedia.getId());
+        }
+
+        return new MediaDifference(false, filename + "-" + mediaIndex.get(INDEX_KEY) + "." + fileExtension, parentMedia.getId());
     }
 
-    private Map<String, Integer> getLastMediaIndex(List<Media> mediaList, String regex, String filename, boolean isDifferent, String fileExtension, Media parentMedia) {
-        final int[] index = {0};
-        final boolean[] found = {false};
-        final Map<String, Integer> output = new HashMap<>();
+    private MediaDifference createMediaDifference(String filename, String fileExtension) {
+        return new MediaDifference(true, filename + "." + fileExtension);
+    }
 
-        mediaList.forEach((Media m) -> {
-            if (m.getFilename().replaceAll(regex, "").equals(filename) && m.getParentId() != null) {
-                if (index[0] == 0) {
-                    found[0] = true;
-                }
-                String mediaFilename = m.getFilename();
-                Matcher matcher = Pattern.compile(regex).matcher(mediaFilename);
-                if (matcher.find()) {
-                    if (matcher.group(1) != null) {
-                        String indexString = matcher.group(1);
-                        int mediaIndex = Integer.parseInt(indexString);
-                        if (mediaIndex > index[0]) {
-                            index[0] = mediaIndex;
-                        }
-                    }
-                }
+    private Map<String, Integer> getLastMediaIndex(List<Media> mediaList, String filename, String fileExtension) {
+        String regex = "-(\\d+)\\." + fileExtension + "$|\\." + fileExtension + "$";
+        int maxIndex = 0;
+        boolean found = false;
+
+        for (Media m : mediaList) {
+            if (isMatchingMedia(m, regex, filename)) {
+                found = true;
+                maxIndex = Math.max(maxIndex, getMediaIndex(m.getFilename(), regex));
             }
-        });
-
-        if (index[0] == 0 && !found[0]) {
-            output.put("index", index[0]);
-            output.put("found", 0);
-            return output;
         }
 
-        index[0]++;
-        output.put("index", index[0]);
-        output.put("found", 1);
+        Map<String, Integer> output = new HashMap<>();
+        output.put(INDEX_KEY, found ? maxIndex + 1 : 0);
+        // 1 == true; 0 == false
+        output.put(FOUND_KEY, found ? 1 : 0);
         return output;
+    }
+
+    private boolean isMatchingMedia(Media m, String regex, String filename) {
+        String mediaFilename = m.getFilename().replaceAll(regex, "");
+        return mediaFilename.equals(filename);
+    }
+
+    private int getMediaIndex(String mediaFilename, String regex) {
+        Matcher matcher = Pattern.compile(regex).matcher(mediaFilename);
+        if (matcher.find() && matcher.group(1) != null) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return 0;
     }
 
     private String getHostUrl() {
@@ -377,39 +404,8 @@ public class MediaService {
     }
 
     public void syncMedia() {
-        //get all media from cloudinary and save them in the database in case they are not already there
-        try {
-//            ApiResponse apiResponse = cloudinary.api().resourceByAssetID("85673c8286be9af8e0a1aee250035460?colors=true", ObjectUtils.asMap(
-//                    "colors", true
-//            ));
-//            System.out.println(apiResponse);
-
-
-//            ApiResponse response = cloudinary.api().resourcesByAssetFolder("media", ObjectUtils.asMap(
-//                    "tags", true,
-//                    "metadata", true
-//            ));
-//            List<Map> resources = (List<Map>) response.get("resources");
-//            System.out.println("resources " + resources);
-//            for (Map resource : resources) {
-//                String publicId = resource.get("public_id").toString();
-//                Media media = mediaRepository.findByCloudinaryPublicId(publicId);
-//                if (media == null) {
-//                    media = new Media();
-//                    media.url(resource.get("secure_url").toString());
-//                    media.setUploadedAt(LocalDateTime.now());
-//                    media.setCloudinaryPublicId(publicId);
-//                    media.setType(MediaType.valueOf(resource.get("resource_type").toString().toUpperCase()));
-//                    media.setWidth(Integer.parseInt(resource.get("width").toString()));
-//                    media.setHeight(Integer.parseInt(resource.get("height").toString()));
-////                    media.setAvgColor(((List<List<String>>) resource.get("colors")).get(0).get(0));
-////                    media.setHash(resource.get("etag").toString());
-//                    mediaRepository.save(media);
-//                }
-//            }
-        } catch (Exception e) {
-            throw new BadRequestException("Error syncing media from Cloudinary. " + e.getMessage());
-        }
+        // get all media from media folder and add them to the database if they don't exist
+        // update the url to the current host
     }
 
     /**

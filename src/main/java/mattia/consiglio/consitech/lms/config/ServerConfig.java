@@ -25,15 +25,18 @@ public class ServerConfig {
                 "https://consitech-lms-front-end-git-develop-mattias-projects-67143469.vercel.app");
     }
 
+    /**
+     * Returns the path to the media files directory.
+     *
+     * @return the path to the media files directory
+     */
     @Bean("mediaPath")
     public String mediaPath() {
         String rootPath = System.getProperty("user.dir");
         if (!rootPath.endsWith(File.separator)) {
             rootPath += File.separator;
         }
-        String mediaPath = rootPath + "mediaFiles";
-        System.out.println("mediaPath: " + mediaPath);
-        return mediaPath;
+        return rootPath + "mediaFiles";
     }
 
     @Bean("transcodePath")

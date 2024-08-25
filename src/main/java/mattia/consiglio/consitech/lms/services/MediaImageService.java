@@ -26,6 +26,19 @@ public class MediaImageService {
 
 
     public MediaImage uploadImage(MediaImage media) {
+        if (media.getParentId() != null) {
+            MediaImage parent = mediaImageRepository.findById(media.getParentId()).orElse(null);
+            if (parent == null) {
+                throw new BadRequestException("Parent media not found");
+            }
+            MediaImage mediaImage = new MediaImage.Builder()
+                    .media(media)
+                    .avgColor(parent.getAvgColor())
+                    .width(parent.getWidth())
+                    .height(parent.getHeight())
+                    .build();
+            return mediaImageRepository.save(mediaImage);
+        }
 
         try (InputStream inputStream = new FileInputStream(mediaServiceUtils.getPath(media))) {
             BufferedImage image = ImageIO.read(inputStream);
