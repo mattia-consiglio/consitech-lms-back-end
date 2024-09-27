@@ -24,6 +24,10 @@ public class HostsFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String host = request.getHeader("origin");
         String referer = request.getHeader("referer");
+
+        System.out.println("Request Host: " + host);
+        System.out.println("Request referrer: " + referer);
+
         if (host != null) {
             host = host.toLowerCase();
         }

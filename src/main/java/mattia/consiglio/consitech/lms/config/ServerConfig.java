@@ -22,7 +22,8 @@ public class ServerConfig {
                 "http://localhost:3000",
                 "https://lms.consitech.it",
                 "https://consitech-lms-front-end.vercel.app",
-                "https://consitech-lms-front-end-git-develop-mattias-projects-67143469.vercel.app");
+                "https://consitech-lms-front-end-git-develop-mattias-projects-67143469.vercel.app"
+        );
     }
 
     /**
