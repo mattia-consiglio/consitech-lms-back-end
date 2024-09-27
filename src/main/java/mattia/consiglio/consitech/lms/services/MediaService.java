@@ -56,6 +56,24 @@ public class MediaService {
     @SuppressWarnings("SpringQualifierCopyableLombok")
     @Qualifier("mediaPath")
     private final String mediaPath;
+    private static final String INDEX_KEY = "index";
+    private static final String FOUND_KEY = "found";
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    static class MediaDifference {
+        private boolean isDifferent;
+        private String filename;
+        private UUID parentId;
+
+        public MediaDifference(boolean isDifferent, String filename) {
+            this.isDifferent = isDifferent;
+            this.filename = filename;
+            this.parentId = null;
+        }
+    }
+
 
     /**
      * Uploads a media file (image or video) to the server and returns the corresponding media entity.
@@ -184,26 +202,11 @@ public class MediaService {
         return mediaFile;
     }
 
-    @Getter
-    @Setter
-    @AllArgsConstructor
-    private static class MediaDifference {
-        private boolean isDifferent;
-        private String filename;
-        private UUID parentId;
 
-        public MediaDifference(boolean isDifferent, String filename) {
-            this.isDifferent = isDifferent;
-            this.filename = filename;
-            this.parentId = null;
+    MediaDifference checkFileDifference(String hash, String filename, String fileExtension) {
+        if (hash == null || filename == null || fileExtension == null) {
+            throw new BadRequestException("Invalid hash, filename, or file extension");
         }
-    }
-
-    private static final String INDEX_KEY = "index";
-    private static final String FOUND_KEY = "found";
-
-
-    private MediaDifference checkFileDifference(String hash, String filename, String fileExtension) {
         List<Media> mediaList = mediaRepository.findByHashOrderByFilenameDesc(hash);
 
         // Check if the file is already in the database
@@ -262,7 +265,7 @@ public class MediaService {
         return 0;
     }
 
-    private String getHostUrl() {
+    String getHostUrl() {
 
         String scheme = request.getScheme();             // http or https
         String serverName = request.getServerName();     // hostname or IP
@@ -416,7 +419,10 @@ public class MediaService {
      * @throws IOException              If an I/O error occurs.
      * @throws NoSuchAlgorithmException If the MessageDigest algorithm is not found.
      */
-    public static String calculateHash(MultipartFile file) throws IOException, NoSuchAlgorithmException {
+    public String calculateHash(MultipartFile file) throws IOException, NoSuchAlgorithmException {
+        if (file == null) {
+            throw new BadRequestException("File cannot be null");
+        }
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         InputStream inputStream = file.getInputStream();
         byte[] buffer = new byte[8192];
@@ -438,6 +444,9 @@ public class MediaService {
 
 
     public MediaType getMediaType(MultipartFile file) {
+        if (file == null) {
+            return null;
+        }
         String contentType = file.getContentType();
         if (contentType != null) {
             if (contentType.startsWith("image")) {
